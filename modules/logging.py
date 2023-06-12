@@ -1,6 +1,7 @@
 import os
 from modules.telegram import sendTelegram
 
+
 class logger:
     path = ""
     log_type = {
@@ -19,7 +20,7 @@ class logger:
     def add_log(self, logType: str, message: str, sendPing: bool):
         msg = f"{logType}: {message}"
 
-        #TODO: add to log file as well
+        # TODO: add to log file as well
 
         if sendPing:
             sendTelegram(msg)
