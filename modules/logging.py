@@ -8,3 +8,5 @@ class logger:
         self.path = os.path.join(os.getcwd(), 'logs')
         if not os.path.exists(self.path):
             os.mkdir(self.path)
+
+    # TODO: add option to send telegram of this too
