@@ -5,6 +5,7 @@ class Symbols:
     _symbolsList = {
 
     }
+    _logger = None
     _fyers = None
     _common_symbols = {
         'nifty50': "NSE:NIFTY50-INDEX",
@@ -20,9 +21,11 @@ class Symbols:
 
         if symbol in self._common_symbols:
             symbolObject = Symbol(self._common_symbols[symbol], self._fyers)
+            symbolObject.startWebsocket(self._logger.path)
             self._symbolsList[self._common_symbols[symbol]] = symbolObject
         else:
             symbolObject = Symbol(symbol, self._fyers)
+            symbolObject.startWebsocket(self._logger.path)
             self._symbolsList[symbol] = symbolObject
 
         return symbolObject
@@ -33,5 +36,6 @@ class Symbols:
 
         del self._symbolsList[symbol]
 
-    def __init__(self, fyers):
+    def __init__(self, fyers, logger):
         self._fyers = fyers
+        self._logger = logger

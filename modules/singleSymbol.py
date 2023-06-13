@@ -7,7 +7,6 @@ from threading import Thread
 from modules.keys import app_credentials
 from modules.dateParsing import customDate
 import datetime
-import calendar
 
 
 def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):
