@@ -57,21 +57,6 @@ class StrategyStatus:
         self._description = "Positions closed"
 
 
-########################### QUEUES HANDLER FOR ORDERS MODULE ###########################
-
-class QueuesHandler:
-    orders: Type[type(Queue)] = None
-    updates: Type[type(Queue)] = None
-
-    def set(self, ordersQueue, updatesQueue):
-        self.orders = ordersQueue
-        self.updates = updatesQueue
-
-    def __init__(self, ordersQueue, updatesQueue):
-        self.orders = ordersQueue
-        self.updates = updatesQueue
-
-
 ########################### ORDER STATUS ###########################
 
 class OrderStatusValue:
