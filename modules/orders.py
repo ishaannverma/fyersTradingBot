@@ -43,7 +43,7 @@ class Orders:
 
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
-        self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
+        # self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
         if msg['s'] != 'ok':
             return
         info = msg['d']

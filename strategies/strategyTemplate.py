@@ -1,10 +1,12 @@
+import json
+import os
 import time
 import uuid
 from abc import ABC, abstractmethod
 from threading import Thread
 
 from modules.singleOrder import Order
-from modules.templates import StrategyStatus, StrategyStatusValue, getOrderSideObjectForSideNum
+from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide
 from typing import Type, List
 from strategies.position import Position
 from queue import Queue
@@ -23,6 +25,8 @@ class Strategy(ABC):
     paperTrade: bool = True
     _killSwitch = False  # TODO use this
     _logger: Type[type(Logger)] = None
+    _symbolsHandler = None
+
     ########################### USED BY STRATEGIES HANDLER ###########################
 
     def getPnL(self):
@@ -38,7 +42,7 @@ class Strategy(ABC):
         # TODO WARNING: this will update position to the latest update of that symbol
         while True:
             update = self._updatesQueue.get()
-            self._logger.add_log(LogType.DEBUG, update)
+            # self._logger.add_log(LogType.DEBUG, update)
             found = False
             for position in self.positions:
                 if position.ticker == update['symbol']:
@@ -50,7 +54,9 @@ class Strategy(ABC):
                     found = True
 
             if not found:
-                self.positions.append(Position(update['symbol'], update['qty'], getOrderSideObjectForSideNum(update['side']), update['avgPrice']))
+                self.positions.append(
+                    Position(update['symbol'], update['qty'], OrderSide.fromSideInteger(update['side']),
+                             update['avgPrice']))
 
     def placeOrder(self, order: Type[type(Order)]):
         order.strategyID = self.id
@@ -58,16 +64,33 @@ class Strategy(ABC):
             order.paperTrade = True
         self._ordersQueue.put(order)
 
+    def save_json(self):
+        data = self.get_snapshot_json()
+
+        success = True
+        with open(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"), "w") as file:
+            try:
+                json.dump(data, file)
+                self._logger.add_log(LogType.INFO, f"{self._strategyName} {self.id} successfully saved")
+            except Exception as e:
+                success = False
+                self._logger.add_log(LogType.ERROR, f"{self._strategyName} {self.id} could not be saved: {e}")
+
+        if not success:
+            os.remove(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"))
+
+    # TODO sending telegram messages on request of snapshot
+
     @abstractmethod
     def _logic(self):
         pass
 
     @abstractmethod
-    def save_binary(self):
+    def get_snapshot_json(self):
         pass
 
     @abstractmethod
-    def from_binary(self):
+    def fill_from_json(self, jsonDict):
         pass
 
     def start(self):

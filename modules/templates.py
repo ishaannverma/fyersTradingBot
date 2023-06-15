@@ -126,17 +126,16 @@ class OrderSideObject:
     Sell = OrderSideValue(-1, "Sell")
     PlaceHolder = OrderSideValue(0, "Placeholder")
 
+    def fromSideInteger(self, num: int):
+        if num == 1:
+            return self.Buy
+        if num == -1:
+            return self.Sell
+        if num == 0:
+            return self.PlaceHolder
+
 
 OrderSide = OrderSideObject()
-
-
-def getOrderSideObjectForSideNum(num):
-    if num == 1:
-        return OrderSide.Buy
-    if num == -1:
-        return OrderSide.Sell
-    if num == 0:
-        return OrderSide.PlaceHolder
 
 
 ########################### LOG TYPE ###########################

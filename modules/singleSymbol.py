@@ -59,7 +59,7 @@ class Symbol:
             return self
         self._websocketThread = Thread(target=marketWebsocketMain,
                                        args=(self.ticker, self._onMessage, app_credentials['WS_ACCESS_TOKEN'], logs,))
-        self._logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
+        # self._logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
         self._websocketThread.start()
         return self
 
