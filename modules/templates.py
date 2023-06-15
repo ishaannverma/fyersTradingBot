@@ -83,6 +83,30 @@ class OrderStatusValue:
         self.description = desc
 
 
+def getDescriptionForOrderStatus(status):
+    if status < 0 or status > 6:
+        return "Invalid Status"
+    if status == 0:
+        return "Unsent"
+    if status == 1:
+        return "Cancelled"
+
+    if status == 2:
+        return "Filled"
+
+    if status == 3:
+        return "For Future Use"
+
+    if status == 4:
+        return "Transit"
+
+    if status == 5:
+        return "Rejected"
+
+    if status == 6:
+        return "Pending"
+
+
 class OrderStatusObject:
     unsent = OrderStatusValue(0, "Unsent")
     cancelled = OrderStatusValue(1, "Cancelled")
@@ -91,29 +115,6 @@ class OrderStatusObject:
     transit = OrderStatusValue(4, "Transit")
     rejected = OrderStatusValue(5, "Rejected")
     pending = OrderStatusValue(6, "Pending")
-
-    def getDescriptionForStatus(self, status):
-        if status < 0 or status > 6:
-            return "Invalid Status"
-        if status == 0:
-            return "Unsent"
-        if status == 1:
-            return "Cancelled"
-
-        if status == 2:
-            return "Filled"
-
-        if status == 3:
-            return "For Future Use"
-
-        if status == 4:
-            return "Transit"
-
-        if status == 5:
-            return "Rejected"
-
-        if status == 6:
-            return "Pending"
 
 
 OrderStatus = OrderStatusObject()

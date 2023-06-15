@@ -2,11 +2,13 @@ import threading
 import time
 from pprint import pprint
 from typing import Type, Dict
-from modules.templates import QueuesHandler, OrderStatusObject, OrderSide
+from modules.templates import QueuesHandler, OrderStatusObject, OrderSide, getDescriptionForOrderStatus
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
 from modules.singleOrder import Order
+from queue import Queue
+from modules.Symbols import Symbols
 
 
 ########################### ORDERS WEBSOCKET ###########################
@@ -26,16 +28,16 @@ def startOrdersWebsocket(onMessage, log_path):
 
 
 class Orders:
-    _queues: Dict[str, QueuesHandler] = {}  # strategy ID to handlers
+    _updates_queues: Dict[str, type(Queue)] = {}  # strategy ID to updates queue
+    _orders_queue: Type[type(Queue)] = None
     _fyers = None
     _orderIDToStrategyID = {
         # TODO make function to build this
     }
 
     ########################### ADDING AND REMOVING STRATEGIES ###########################
-    def addStrategy(self, strategyID, ordersQueue, updatesQueue):
-        queueHandler = QueuesHandler(ordersQueue, updatesQueue)
-        self._queues[strategyID] = queueHandler
+    def addStrategy(self, strategyID, updatesQueue):
+        self._updates_queues[strategyID] = updatesQueue
 
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
@@ -60,18 +62,33 @@ class Orders:
             'side': side
         }
 
-        self._queues[self._orderIDToStrategyID[fyersID]].updates.put(update)
+        self._updates_queues[self._orderIDToStrategyID[fyersID]].put(update)
 
         if orderStatus == OrderStatusObject.rejected.status or orderStatus == OrderStatusObject.filled.status or orderStatus == OrderStatusObject.cancelled.status:
             print(
-                f"Removing order for {symbol} from strategy {self._orderIDToStrategyID[fyersID]} because order status is ({OrderStatusObject.getDescriptionForStatus(orderStatus)})")
+                f"Removing order for {symbol} from strategy {self._orderIDToStrategyID[fyersID]} because order status is ({getDescriptionForOrderStatus(orderStatus)})")
             self._orderIDToStrategyID.pop(fyersID)
+
+    def _sendDummyFilledUpdate(self, order: Type[type(Order)]):
+        def sendUpdateAfterWait():
+            time.sleep(3)
+            order.status = OrderStatusObject.filled
+            update = {
+                'symbol': order.symbol,
+                'orderID': "dummy",  # TODO is unnecessary?
+                'orderStatus': OrderStatusObject.filled.status,  # TODO is unnecessary?
+                'qty': order.quantity,
+                'avgPrice': order.symbol.ltp,
+                'side': order.side
+            }
+            self._updates_queues[order.strategyID].put(update)
+        Thread(target=sendUpdateAfterWait).start()
 
     ########################### ORDERING ###########################
     def sendOrder(self, order: Type[type(Order)]):
         # TODO cancel if another order of same symbol pending
         data = {
-            "symbol": order.symbol,
+            "symbol": order.symbol.ticker,
             "qty": order.quantity,
             "type": 2,  # market order
             "limitPrice": 0,
@@ -82,6 +99,7 @@ class Orders:
             "offlineOrder": "False",
             "validity": "IOC"
         }
+        # TODO move all printing logic to logger (so telegram becomes easier too)
         response = self._fyers.place_order(data)
         print(response)
         if response['s'] != "ok":
@@ -90,32 +108,23 @@ class Orders:
         order.fyersID = response['id']
         order.status = OrderStatusObject.pending
 
-    # listening to all the queues
+    # listening to order queue
     def orderQueueListener(self):
-        while True:
-            for stratID, queuesHandler in self._queues.items():
-                ordersQueue = queuesHandler.orders
-                while not ordersQueue.empty():
-                    order = ordersQueue.get(block=False)
-                    self.sendOrder(order)
-                    if order.status != OrderStatusObject.rejected:
-                        self._orderIDToStrategyID[order.fyersID] = stratID
-            time.sleep(5)
-
-    def startOrderingThread(self):
-        threading.Thread(target=self.orderQueueListener).start()
+        order = self._orders_queue.get()
+        print(f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
+        if order.paperTrade:
+            order.status = OrderStatusObject.pending
+            self._sendDummyFilledUpdate(order)
+            return
+        self.sendOrder(order)
+        if order.status != OrderStatusObject.rejected:
+            self._orderIDToStrategyID[order.fyersID] = order.strategyID
 
     ########################### init ###########################
-    def __init__(self, fyers, log_path):
+    def __init__(self, ordersQueue, fyers, log_path):
         self._fyers = fyers
-        startOrdersWebsocket(self._onSocketMessage, log_path)
-        self.startOrderingThread()
+        self._orders_queue = ordersQueue
 
-    # {"s": "ok", "d": {"orderDateTime": 2002234599, "id": '
-    #                                                      '"23061400128345", "exchOrdId": "23061400128345", "side": 1, "segment": "E", '
-    #                                                      '"instrument": "", "productType": "INTRADAY", "status": 2, "qty": 1, '
-    #                                                      '"remainingQuantity": 0, "filledQty": 1, "limitPrice": 77.05, "stopPrice": '
-    #                                                      '0.0, "type": 2, "discloseQty": 0, "dqQtyRem": 0, "orderValidity": "DAY", '
-    #                                                      '"slNo": 2, "offlineOrder": false, "message": "TRADE_CONFIRMED", '
-    #                                                      '"orderNumStatus": "23061400128345:2", "tradedPrice": 77.05, "fyToken": '
-    #                                                      '"10100000005097", "symbol": "NSE:ZOMATO-EQ"}, "ws_type": 1}
+        startOrdersWebsocket(self._onSocketMessage, log_path)
+        threading.Thread(target=self.orderQueueListener).start()
+

@@ -16,23 +16,23 @@ class MonthStraddle(Strategy):
     _strategyName: str = "MonthStraddle"
     id: str = uuid4().hex
 
-    def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], fyers, symbolsHandler: Type[type(Symbols)], logger):
+    def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], fyers, symbolsHandler: Type[type(Symbols)],
+                 logger, paperTrade=True):
         self._symbolsHandler = symbolsHandler
         self.underlying = symbol
         self.vix = vix
         self._fyers = fyers
         self._logger = logger
-
-    def start(self):
-        Thread(target=self._updatesQueueListener).start()
+        self.paperTrade = paperTrade
+        print(f"Starting strategy {self._strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}")
 
     def _logic(self):
         # checking if it works
         time.sleep(5)
-        symbol = self.underlying.getWeeklyExpiryAfterNDays(0, 17500, "PE")
+        symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "PE")
         asset = self._symbolsHandler.get(symbol)
         order = Order(asset, 50, OrderSide.Buy)
-        # self._ordersQueue.put(order)
+        self.placeOrder(order)
         pass
 
     def _save_binary(self):

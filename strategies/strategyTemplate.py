@@ -2,6 +2,8 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from threading import Thread
+
+from modules.singleOrder import Order
 from modules.templates import StrategyStatus
 from typing import Type, List
 from strategies.position import Position
@@ -16,7 +18,8 @@ class Strategy(ABC):
     _updatesQueue: Type[type(Queue)] = None
     _commandsQueue: Type[type(Queue)] = None
     positions: List[type(Position)] = []
-    _killSwitch = False # TODO use this
+    paperTrade: bool = True
+    _killSwitch = False  # TODO use this
 
     ########################### USED BY STRATEGIES HANDLER ###########################
 
@@ -28,16 +31,12 @@ class Strategy(ABC):
         self._updatesQueue = updates
         self._commandsQueue = commands
 
-    def startLogicOnThread(self):
-        logicThread = Thread(target=self._logic)
-        logicThread.start()
-
     ########################### USED OTHERWISE ###########################
     def _updatesQueueListener(self):
         # TODO WARNING: this will update position to the latest update of that symbol
         while True:
             update = self._updatesQueue.get()
-
+            print(update)
             found = False
             for position in self.positions:
                 if position.ticker == update['symbol']:
@@ -49,6 +48,12 @@ class Strategy(ABC):
 
             if not found:
                 self.positions.append(Position(update['symbol'], update['qty'], update['side'], update['avgPrice']))
+
+    def placeOrder(self, order: Type[type(Order)]):
+        order.strategyID = self.id
+        if self.paperTrade:
+            order.paperTrade = True
+        self._ordersQueue.put(order)
 
     @abstractmethod
     def _logic(self):
@@ -62,6 +67,6 @@ class Strategy(ABC):
     def _get_binary(self):
         pass
 
-    @abstractmethod
     def start(self):
-        pass
+        Thread(target=self._logic).start()
+        Thread(target=self._updatesQueueListener).start()

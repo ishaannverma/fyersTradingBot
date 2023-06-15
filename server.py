@@ -19,9 +19,8 @@ indiavix = symbolsHandler.get('indiavix')
 
 strategiesHandler = StrategyHandler(fyers, logger)
 
-monthStraddle = MonthStraddle(nifty50, indiavix, fyers, symbolsHandler, logger)
+monthStraddle = MonthStraddle(nifty50, indiavix, fyers, symbolsHandler, logger, True)
 strategiesHandler.addStrategy(monthStraddle)
-monthStraddle.start()
 
 # last and blocking line of the app
 telegram_bot.infinity_polling()
