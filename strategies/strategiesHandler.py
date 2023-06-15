@@ -15,7 +15,7 @@ class StrategyHandler:
     def __init__(self, fyers, logger):
         self._fyers = fyers
         self._logger = logger
-        self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger.path)
+        self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
 
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy

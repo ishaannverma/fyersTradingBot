@@ -8,6 +8,8 @@ from modules.templates import StrategyStatus
 from typing import Type, List
 from strategies.position import Position
 from queue import Queue
+from modules.logging import Logger
+from modules.templates import LogType
 
 
 class Strategy(ABC):
@@ -20,7 +22,7 @@ class Strategy(ABC):
     positions: List[type(Position)] = []
     paperTrade: bool = True
     _killSwitch = False  # TODO use this
-
+    _logger: Type[type(Logger)] = None
     ########################### USED BY STRATEGIES HANDLER ###########################
 
     def getPnL(self):
@@ -36,14 +38,15 @@ class Strategy(ABC):
         # TODO WARNING: this will update position to the latest update of that symbol
         while True:
             update = self._updatesQueue.get()
-            print(update)
+            self._logger.add_log(LogType.DEBUG, update)
             found = False
             for position in self.positions:
                 if position.ticker == update['symbol']:
                     position.quantity = update['qty']
                     position.avgPrice = update['avgPrice']
                     if found:
-                        print(f"WARNING: FOUND 2 INSTANCES OF SAME SYMBOL IN POSITION FOR STRATEGY {self.id}")
+                        self._logger.add_log(LogType.WARNING,
+                                             f"FOUND 2 INSTANCES OF SAME SYMBOL IN POSITION FOR STRATEGY {self.id}")
                     found = True
 
             if not found:

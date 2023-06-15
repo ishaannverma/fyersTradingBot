@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from modules.keys import app_credentials
 import os
+from modules.templates import LogType
 
 loginLogLocation = os.path.join(os.getcwd(), 'logs', 'login.txt')
 
@@ -18,38 +19,39 @@ session = accessToken.SessionModel(
 )
 
 
-def checkValidityofModel(fyers, tokenTime):
+def checkValidityofModel(fyers, logger, tokenTime):
     timeDiff = datetime.now() - tokenTime
     if timeDiff > timedelta(hours=14):
-        print(f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
+        logger.add_log(LogType.PRINT,
+                       f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
         return False
     else:
-        print(f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
+        logger.add_log(LogType.PRINT, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
     try:
         response = fyers.get_profile()
         if response['code'] == 200:
             return True
         else:
-            print(f"Autologin failed: {response['message']}")
+            logger.add_log(LogType.PRINT, f"Autologin failed: {response['message']}")
     except Exception as e:
-        print(f"Couldn't autologin: {e}")
+        logger.add_log(LogType.PRINT, f"Couldn't autologin: {e}")
         pass
 
     return False
 
 
-def checkConnection(fyers) -> [bool, str]:
+def checkConnection(fyers, logger):
     response = None
     try:
         response = fyers.get_profile()
     except Exception as e:
-        sys.exit(f"Problem connecting: {e}")
+        logger.add_log(LogType.FATAL, f"Problem connecting: {e}")
 
     if response['code'] == 200:
-        print("Connection Verified!")
+        logger.add_log(LogType.INFO, "Connection Verified!")
     else:
-        sys.exit(f"Problem connecting: {response['s']}")
+        logger.add_log(LogType.FATAL, f"Problem connecting: {response['s']}")
 
 
 def login(logger, autoLogin: bool = True):
@@ -61,19 +63,19 @@ def login(logger, autoLogin: bool = True):
                 tokenTime = datetime.fromtimestamp(int(loginText[0]))
                 token = loginText[1]
             except Exception as e:
-                print(e)
+                logger.add_log(LogType.ERROR, e)
             app_credentials['ACCESS_TOKEN'] = token
             app_credentials['WS_ACCESS_TOKEN'] = f"{app_credentials['APP_ID']}:{app_credentials['ACCESS_TOKEN']}"
             fyers = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
                                           log_path=logger.path)
-            if checkValidityofModel(fyers, tokenTime):
-                print("INFO: Auto Login Successful!")
+            if checkValidityofModel(fyers, logger, tokenTime):
+                logger.add_log(LogType.INFO, "Auto Login Successful!")
                 return fyers
     # TODO front landing page if autologin
 
     # if not, make new model
     # Step 1
-    print("INFO: Logging in manually")
+    logger.add_log(LogType.INFO, "Logging in manually")
     response = session.generate_authcode()
     print(response)
 

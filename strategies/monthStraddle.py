@@ -7,7 +7,7 @@ from modules.Symbols import Symbols
 from modules.singleOrder import Order
 from strategies.strategyTemplate import Strategy
 from modules.singleSymbol import Symbol
-from modules.templates import OrderSide
+from modules.templates import OrderSide, LogType
 
 
 class MonthStraddle(Strategy):
@@ -24,7 +24,8 @@ class MonthStraddle(Strategy):
         self._fyers = fyers
         self._logger = logger
         self.paperTrade = paperTrade
-        print(f"Starting strategy {self._strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}")
+        self._logger.add_log(LogType.INFO,
+                             f"Starting strategy {self._strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}")
 
     def _logic(self):
         # checking if it works

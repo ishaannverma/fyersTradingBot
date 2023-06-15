@@ -1,14 +1,14 @@
-from pprint import pprint
 from typing import Type
 from fyers_api import fyersModel
-from datetime import datetime, timedelta
+from datetime import datetime
 from fyers_api.Websocket import ws
 from threading import Thread
 from modules.keys import app_credentials
 from modules.dateParsing import customDate
 import datetime
 
-from modules.logging import logger
+from modules.logging import Logger
+from modules.templates import LogType
 
 
 def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):
@@ -17,7 +17,6 @@ def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):
     }
 
     response = fyers.quotes(data)
-    # pprint(response['d'][0])
     try:
         cmd = response['d'][0]['v']['cmd']['c']
     except:
@@ -45,7 +44,7 @@ class Symbol:
     ticker: str = ""
     ltp: float = ""
     time: float = ""
-    _logger: Type[type(logger)] = None
+    _logger: Type[type(Logger)] = None
     _websocketThread = None
 
     def _onMessage(self, msg):
@@ -60,7 +59,7 @@ class Symbol:
             return self
         self._websocketThread = Thread(target=marketWebsocketMain,
                                        args=(self.ticker, self._onMessage, app_credentials['WS_ACCESS_TOKEN'], logs,))
-        print(f'INFO: Starting websocket for {self.ticker}')
+        self._logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
         self._websocketThread.start()
         return self
 
