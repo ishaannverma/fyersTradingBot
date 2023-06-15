@@ -44,32 +44,22 @@ class ContractMonths:
 
 ########################### STRATEGY STATUS ###########################
 
-class StrategyStatus:
-    _code: int = 0
-    _description: str = "Untraded"
+class StrategyStatusValue:
+    code: int = 0
+    description: str = "untraded"
 
-    def setTrading(self):
-        self._code = 1
-        self._description = "Trading (active positions)"
-
-    def setClosed(self):
-        self._code = 2
-        self._description = "Positions closed"
+    def __init__(self, code, desc):
+        self.code = code
+        self.description = desc
 
 
-########################### QUEUES HANDLER FOR ORDERS MODULE ###########################
+class StrategyStatusObject:
+    untraded = StrategyStatusValue(0, "untraded")
+    trading = StrategyStatusValue(1, "trading")
+    closed = StrategyStatusValue(-1, "closed")
 
-class QueuesHandler:
-    orders: Type[type(Queue)] = None
-    updates: Type[type(Queue)] = None
 
-    def set(self, ordersQueue, updatesQueue):
-        self.orders = ordersQueue
-        self.updates = updatesQueue
-
-    def __init__(self, ordersQueue, updatesQueue):
-        self.orders = ordersQueue
-        self.updates = updatesQueue
+StrategyStatus = StrategyStatusObject()
 
 
 ########################### ORDER STATUS ###########################
@@ -136,6 +126,14 @@ class OrderSideObject:
     Sell = OrderSideValue(-1, "Sell")
     PlaceHolder = OrderSideValue(0, "Placeholder")
 
+    def fromSideInteger(self, num: int):
+        if num == 1:
+            return self.Buy
+        if num == -1:
+            return self.Sell
+        if num == 0:
+            return self.PlaceHolder
+
 
 OrderSide = OrderSideObject()
 
@@ -152,13 +150,35 @@ class LogTypeValue:
 
 
 class LogTypeObject:
-    FATAL = LogTypeValue(0, "FATAL")
-    ERROR = LogTypeValue(1, "ERROR")
-    WARNING = LogTypeValue(2, "WARNING")
-    INFO = LogTypeValue(3, "INFO")
+    FATAL = LogTypeValue(1, "FATAL")
+    ERROR = LogTypeValue(2, "ERROR")
+    WARNING = LogTypeValue(3, "WARNING")
+    INFO = LogTypeValue(4, "INFO")
     UPDATE = LogTypeValue(4, "UPDATE")
     DEBUG = LogTypeValue(5, "DEBUG")
-    PRINT = LogTypeValue(6, "PRINT")
+    # PRINT = LogTypeValue(6, "PRINT")
 
 
 LogType = LogTypeObject()
+
+
+########################### LOG LEVEL ###########################
+
+class LogLevelValue:
+    num: int = 6
+
+    def __init__(self, num):
+        self.num = num
+
+
+class LogLevelObject:
+    OFF = 0
+    FATAL = 1
+    ERROR = 2
+    WARNING = 3
+    INFO = 4
+    DEBUG = 5
+    ALL = 6
+
+
+LogLevel = LogLevelObject()

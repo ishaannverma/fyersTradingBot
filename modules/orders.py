@@ -3,13 +3,12 @@ import time
 from typing import Type, Dict
 
 from modules.logging import Logger
-from modules.templates import QueuesHandler, OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
+from modules.templates import OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
 from modules.singleOrder import Order
 from queue import Queue
-from modules.Symbols import Symbols
 
 
 ########################### ORDERS WEBSOCKET ###########################
@@ -23,7 +22,7 @@ def run_process_order_update(onMessage, access_token, log_path):
 
 def startOrdersWebsocket(onMessage, logger):
     thread = Thread(target=run_process_order_update,
-                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.path,))
+                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.logging_path,))
     logger.add_log(LogType.INFO, 'Starting orders websocket')
     thread.start()
 
@@ -43,7 +42,7 @@ class Orders:
 
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
-        self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
+        # self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
         if msg['s'] != 'ok':
             return
         info = msg['d']
@@ -76,14 +75,13 @@ class Orders:
             time.sleep(3)
             order.status = OrderStatusObject.filled
             update = {
-                'symbol': order.symbol,
-                'orderID': "dummy",  # TODO is unnecessary?
-                'orderStatus': OrderStatusObject.filled.status,  # TODO is unnecessary?
+                'symbol': order.symbol.ticker,
                 'qty': order.quantity,
                 'avgPrice': order.symbol.ltp,
                 'side': order.side
             }
             self._updates_queues[order.strategyID].put(update)
+
         Thread(target=sendUpdateAfterWait).start()
 
     ########################### ORDERING ###########################
@@ -131,4 +129,3 @@ class Orders:
 
         startOrdersWebsocket(self._onSocketMessage, self._logger)
         threading.Thread(target=self.orderQueueListener).start()
-

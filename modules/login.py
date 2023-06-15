@@ -22,21 +22,20 @@ session = accessToken.SessionModel(
 def checkValidityofModel(fyers, logger, tokenTime):
     timeDiff = datetime.now() - tokenTime
     if timeDiff > timedelta(hours=14):
-        logger.add_log(LogType.PRINT,
+        logger.add_log(LogType.INFO,
                        f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
         return False
     else:
-        logger.add_log(LogType.PRINT, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
+        logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
     try:
         response = fyers.get_profile()
         if response['code'] == 200:
             return True
         else:
-            logger.add_log(LogType.PRINT, f"Autologin failed: {response['message']}")
+            logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
     except Exception as e:
-        logger.add_log(LogType.PRINT, f"Couldn't autologin: {e}")
-        pass
+        logger.add_log(LogType.ERROR, f"Couldn't autologin: {e}")
 
     return False
 
@@ -67,7 +66,7 @@ def login(logger, autoLogin: bool = True):
             app_credentials['ACCESS_TOKEN'] = token
             app_credentials['WS_ACCESS_TOKEN'] = f"{app_credentials['APP_ID']}:{app_credentials['ACCESS_TOKEN']}"
             fyers = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
-                                          log_path=logger.path)
+                                          log_path=logger.logging_path)
             if checkValidityofModel(fyers, logger, tokenTime):
                 logger.add_log(LogType.INFO, "Auto Login Successful!")
                 return fyers
@@ -94,4 +93,4 @@ def login(logger, autoLogin: bool = True):
         f.write(f"{int(datetime.now().timestamp())} {app_credentials['ACCESS_TOKEN']}")
 
     return fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
-                                 log_path=logger.path)
+                                 log_path=logger.logging_path)

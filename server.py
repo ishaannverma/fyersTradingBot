@@ -7,7 +7,9 @@ from modules.Symbols import Symbols
 from modules.orders import Orders
 from strategies.strategiesHandler import StrategyHandler
 from strategies.monthStraddle import MonthStraddle
-logger = Logger()
+from modules.templates import LogLevel
+
+logger = Logger(LogLevel.DEBUG)
 
 fyers = login(logger, autoLogin=True)
 checkConnection(fyers, logger)
@@ -16,10 +18,9 @@ symbolsHandler = Symbols(fyers, logger)
 nifty50 = symbolsHandler.get('nifty50')
 indiavix = symbolsHandler.get('indiavix')
 
-strategiesHandler = StrategyHandler(fyers, logger)
+strategiesHandler = StrategyHandler(fyers, symbolsHandler, logger)
 
-monthStraddle = MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger, paperTrade=True)
-strategiesHandler.addStrategy(monthStraddle)
+# strategiesHandler.addStrategy(MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger, paperTrade=True))
 
 # last and blocking line of the app
 telegram_bot.infinity_polling()

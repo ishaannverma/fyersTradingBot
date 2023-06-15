@@ -1,4 +1,8 @@
-from modules.Symbols import Symbols
+import json
+import os
+
+from modules.templates import LogType, StrategyStatus
+from strategies.monthStraddle import MonthStraddle
 from strategies.strategyTemplate import Strategy
 from typing import Type
 from queue import Queue
@@ -11,11 +15,38 @@ class StrategyHandler:
     _ordering_module_orders_queue = Queue()  # from strategy to ordering module
     _logger = None
     _fyers = None
+    _symbolsHandler = None
 
-    def __init__(self, fyers, logger):
+    def loadSavedStrategies(self):
+        for fileName in os.listdir(self._logger.strat_bin_path):
+            if not fileName.endswith(".json"):
+                continue
+
+            with open(os.path.join(self._logger.strat_bin_path, fileName), "rb") as file:
+                dataDict = json.load(file)
+                strategyName = dataDict['strategyName']
+                status = dataDict['status']
+                paperTrade = dataDict['paperTrade']
+
+                if status == StrategyStatus.closed.description:
+                    continue
+
+                self._logger.add_log(LogType.INFO, f"loading unclosed strategy {fileName.split('.')[0]}")
+
+                if strategyName == "MonthStraddle":
+                    strategyObject = MonthStraddle(None, None, self._fyers, self._symbolsHandler, self._logger,
+                                                   paperTrade).fill_from_json(dataDict)
+                    self.addStrategy(strategyObject)
+
+                # self._logger.add_log(LogType.DEBUG, dataDict)
+
+    def __init__(self, fyers, symbolsHandler, logger):
         self._fyers = fyers
         self._logger = logger
         self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
+        self._symbolsHandler = symbolsHandler
+
+        self.loadSavedStrategies()
 
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy
