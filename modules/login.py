@@ -22,21 +22,20 @@ session = accessToken.SessionModel(
 def checkValidityofModel(fyers, logger, tokenTime):
     timeDiff = datetime.now() - tokenTime
     if timeDiff > timedelta(hours=14):
-        logger.add_log(LogType.PRINT,
+        logger.add_log(LogType.INFO,
                        f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
         return False
     else:
-        logger.add_log(LogType.PRINT, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
+        logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
     try:
         response = fyers.get_profile()
         if response['code'] == 200:
             return True
         else:
-            logger.add_log(LogType.PRINT, f"Autologin failed: {response['message']}")
+            logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
     except Exception as e:
-        logger.add_log(LogType.PRINT, f"Couldn't autologin: {e}")
-        pass
+        logger.add_log(LogType.ERROR, f"Couldn't autologin: {e}")
 
     return False
 

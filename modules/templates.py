@@ -151,13 +151,35 @@ class LogTypeValue:
 
 
 class LogTypeObject:
-    FATAL = LogTypeValue(0, "FATAL")
-    ERROR = LogTypeValue(1, "ERROR")
-    WARNING = LogTypeValue(2, "WARNING")
-    INFO = LogTypeValue(3, "INFO")
+    FATAL = LogTypeValue(1, "FATAL")
+    ERROR = LogTypeValue(2, "ERROR")
+    WARNING = LogTypeValue(3, "WARNING")
+    INFO = LogTypeValue(4, "INFO")
     UPDATE = LogTypeValue(4, "UPDATE")
     DEBUG = LogTypeValue(5, "DEBUG")
-    PRINT = LogTypeValue(6, "PRINT")
+    # PRINT = LogTypeValue(6, "PRINT")
 
 
 LogType = LogTypeObject()
+
+
+########################### LOG LEVEL ###########################
+
+class LogLevelValue:
+    num: int = 6
+
+    def __init__(self, num):
+        self.num = num
+
+
+class LogLevelObject:
+    OFF = 0
+    FATAL = 1
+    ERROR = 2
+    WARNING = 3
+    INFO = 4
+    DEBUG = 5
+    ALL = 6
+
+
+LogLevel = LogLevelObject()

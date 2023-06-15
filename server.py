@@ -7,7 +7,9 @@ from modules.Symbols import Symbols
 from modules.orders import Orders
 from strategies.strategiesHandler import StrategyHandler
 from strategies.monthStraddle import MonthStraddle
-logger = Logger()
+from modules.templates import LogLevel
+
+logger = Logger(LogLevel.ALL)
 
 fyers = login(logger, autoLogin=True)
 checkConnection(fyers, logger)
