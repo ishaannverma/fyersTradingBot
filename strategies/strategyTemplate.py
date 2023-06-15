@@ -15,14 +15,17 @@ from modules.templates import LogType
 
 
 class Strategy(ABC):
-    _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
     _strategyName: str = "Template"
     id: str = ""
+    _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
+    paperTrade: bool = True
+
     _ordersQueue: Type[type(Queue)] = None
     _updatesQueue: Type[type(Queue)] = None
     _commandsQueue: Type[type(Queue)] = None
+
     positions: List[type(Position)] = []
-    paperTrade: bool = True
+
     _killSwitch = False  # TODO use this
     _logger: Type[type(Logger)] = None
     _symbolsHandler = None
@@ -40,6 +43,7 @@ class Strategy(ABC):
     ########################### USED OTHERWISE ###########################
     def _updatesQueueListener(self):
         # TODO WARNING: this will update position to the latest update of that symbol
+        # TODO change this behavior, this way position will never be 0
         while True:
             update = self._updatesQueue.get()
             # self._logger.add_log(LogType.DEBUG, update)

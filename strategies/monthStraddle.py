@@ -12,10 +12,11 @@ from modules.templates import OrderSide, LogType
 
 
 class MonthStraddle(Strategy):
-    underlying: Type[type(Symbol)] = None
-    vix: Type[type(Symbol)] = None
     _strategyName: str = "MonthStraddle"
     id: str = uuid4().hex
+
+    underlying: Type[type(Symbol)] = None
+    vix: Type[type(Symbol)] = None
 
     def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], fyers, symbolsHandler: Type[type(Symbols)],
                  logger, paperTrade=True):
