@@ -1,8 +1,9 @@
 import threading
 import time
-from pprint import pprint
 from typing import Type, Dict
-from modules.templates import QueuesHandler, OrderStatusObject, OrderSide, getDescriptionForOrderStatus
+
+from modules.logging import Logger
+from modules.templates import QueuesHandler, OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
@@ -20,10 +21,10 @@ def run_process_order_update(onMessage, access_token, log_path):
     fs.keep_running()
 
 
-def startOrdersWebsocket(onMessage, log_path):
+def startOrdersWebsocket(onMessage, logger):
     thread = Thread(target=run_process_order_update,
-                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], log_path,))
-    print(f'INFO: Starting orders websocket')
+                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.path,))
+    logger.add_log(LogType.INFO, 'Starting orders websocket')
     thread.start()
 
 
@@ -34,6 +35,7 @@ class Orders:
     _orderIDToStrategyID = {
         # TODO make function to build this
     }
+    _logger: Type[type(Logger)] = None
 
     ########################### ADDING AND REMOVING STRATEGIES ###########################
     def addStrategy(self, strategyID, updatesQueue):
@@ -41,7 +43,7 @@ class Orders:
 
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
-        pprint(f"orders websocket: {msg}")
+        self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
         if msg['s'] != 'ok':
             return
         info = msg['d']
@@ -65,8 +67,8 @@ class Orders:
         self._updates_queues[self._orderIDToStrategyID[fyersID]].put(update)
 
         if orderStatus == OrderStatusObject.rejected.status or orderStatus == OrderStatusObject.filled.status or orderStatus == OrderStatusObject.cancelled.status:
-            print(
-                f"Removing order for {symbol} from strategy {self._orderIDToStrategyID[fyersID]} because order status is ({getDescriptionForOrderStatus(orderStatus)})")
+            self._logger.add_log(LogType.DEBUG,
+                                 f"Removing order for {symbol} from strategy {self._orderIDToStrategyID[fyersID]} because order status is ({getDescriptionForOrderStatus(orderStatus)})")
             self._orderIDToStrategyID.pop(fyersID)
 
     def _sendDummyFilledUpdate(self, order: Type[type(Order)]):
@@ -99,9 +101,10 @@ class Orders:
             "offlineOrder": "False",
             "validity": "IOC"
         }
-        # TODO move all printing logic to logger (so telegram becomes easier too)
+
         response = self._fyers.place_order(data)
-        print(response)
+        self._logger.add_log(LogType.DEBUG, response)
+
         if response['s'] != "ok":
             order.status = OrderStatusObject.rejected
             return
@@ -111,7 +114,7 @@ class Orders:
     # listening to order queue
     def orderQueueListener(self):
         order = self._orders_queue.get()
-        print(f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
+        self._logger.add_log(LogType.UPDATE, f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
         if order.paperTrade:
             order.status = OrderStatusObject.pending
             self._sendDummyFilledUpdate(order)
@@ -121,10 +124,11 @@ class Orders:
             self._orderIDToStrategyID[order.fyersID] = order.strategyID
 
     ########################### init ###########################
-    def __init__(self, ordersQueue, fyers, log_path):
+    def __init__(self, ordersQueue, fyers, logger):
         self._fyers = fyers
         self._orders_queue = ordersQueue
+        self._logger = logger
 
-        startOrdersWebsocket(self._onSocketMessage, log_path)
+        startOrdersWebsocket(self._onSocketMessage, self._logger)
         threading.Thread(target=self.orderQueueListener).start()
 

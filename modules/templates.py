@@ -138,3 +138,27 @@ class OrderSideObject:
 
 
 OrderSide = OrderSideObject()
+
+
+########################### LOG TYPE ###########################
+
+class LogTypeValue:
+    num: int = 6
+    description: str = "print"
+
+    def __init__(self, num, desc):
+        self.num = num
+        self.description = desc
+
+
+class LogTypeObject:
+    FATAL = LogTypeValue(0, "FATAL")
+    ERROR = LogTypeValue(1, "ERROR")
+    WARNING = LogTypeValue(2, "WARNING")
+    INFO = LogTypeValue(3, "INFO")
+    UPDATE = LogTypeValue(4, "UPDATE")
+    DEBUG = LogTypeValue(5, "DEBUG")
+    PRINT = LogTypeValue(6, "PRINT")
+
+
+LogType = LogTypeObject()
