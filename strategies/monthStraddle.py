@@ -53,7 +53,7 @@ class MonthStraddle(Strategy):
         self._logger.add_log(LogType.DEBUG, data)
 
         success = True
-        with open(os.path.join(self._logger.path, f"{self.id}.json"), "w") as file:
+        with open(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"), "w") as file:
             try:
                 json.dump(data, file)
                 self._logger.add_log(LogType.INFO, f"{self._strategyName} {self.id} successfully saved")
@@ -62,7 +62,7 @@ class MonthStraddle(Strategy):
                 self._logger.add_log(LogType.ERROR, f"{self._strategyName} {self.id} could not be saved: {e}")
 
         if not success:
-            os.remove(os.path.join(self._logger.path, f"{self.id}.json"))
+            os.remove(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"))
 
     def _logic(self):
         # checking if it works

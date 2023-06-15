@@ -23,7 +23,7 @@ def run_process_order_update(onMessage, access_token, log_path):
 
 def startOrdersWebsocket(onMessage, logger):
     thread = Thread(target=run_process_order_update,
-                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.path,))
+                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.logging_path,))
     logger.add_log(LogType.INFO, 'Starting orders websocket')
     thread.start()
 

@@ -17,11 +17,11 @@ class StrategyHandler:
     _fyers = None
 
     def loadSaved(self):
-        for fileName in os.listdir(self._logger.path):
+        for fileName in os.listdir(self._logger.strat_bin_path):
             if not fileName.endswith(".json"):
                 continue
             self._logger.add_log(LogType.INFO, f"loading unclosed strategy {fileName.split('.')[0]}")
-            with open(os.path.join(self._logger.path, fileName), "rb") as file:
+            with open(os.path.join(self._logger.strat_bin_path, fileName), "rb") as file:
                 dataDict = json.load(file)
                 self._logger.add_log(LogType.DEBUG, dataDict)
 

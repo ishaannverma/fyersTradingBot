@@ -67,7 +67,7 @@ def login(logger, autoLogin: bool = True):
             app_credentials['ACCESS_TOKEN'] = token
             app_credentials['WS_ACCESS_TOKEN'] = f"{app_credentials['APP_ID']}:{app_credentials['ACCESS_TOKEN']}"
             fyers = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
-                                          log_path=logger.path)
+                                          log_path=logger.logging_path)
             if checkValidityofModel(fyers, logger, tokenTime):
                 logger.add_log(LogType.INFO, "Auto Login Successful!")
                 return fyers
@@ -94,4 +94,4 @@ def login(logger, autoLogin: bool = True):
         f.write(f"{int(datetime.now().timestamp())} {app_credentials['ACCESS_TOKEN']}")
 
     return fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
-                                 log_path=logger.path)
+                                 log_path=logger.logging_path)

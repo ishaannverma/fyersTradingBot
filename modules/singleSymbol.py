@@ -106,4 +106,4 @@ class Symbol:
         self ._logger = logger
 
         if initWebsocket:
-            self.startWebsocket(self._logger.path)
+            self.startWebsocket(self._logger.logging_path)
