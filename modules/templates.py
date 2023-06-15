@@ -1,3 +1,7 @@
+from typing import Type
+from queue import Queue
+
+
 ########################### CONTRACT MONTHS ###########################
 
 class ContractMonth:
@@ -36,3 +40,100 @@ class ContractMonths:
     october = months_list[9]
     november = months_list[10]
     december = months_list[11]
+
+
+########################### STRATEGY STATUS ###########################
+
+class StrategyStatus:
+    _code: int = 0
+    _description: str = "Untraded"
+
+    def setTrading(self):
+        self._code = 1
+        self._description = "Trading (active positions)"
+
+    def setClosed(self):
+        self._code = 2
+        self._description = "Positions closed"
+
+
+########################### QUEUES HANDLER FOR ORDERS MODULE ###########################
+
+class QueuesHandler:
+    orders: Type[type(Queue)] = None
+    updates: Type[type(Queue)] = None
+
+    def set(self, ordersQueue, updatesQueue):
+        self.orders = ordersQueue
+        self.updates = updatesQueue
+
+    def __init__(self, ordersQueue, updatesQueue):
+        self.orders = ordersQueue
+        self.updates = updatesQueue
+
+
+########################### ORDER STATUS ###########################
+
+class OrderStatusValue:
+    status: int = 0
+    description: str = "placeholder"
+
+    def __init__(self, stat, desc):
+        self.status = stat
+        self.description = desc
+
+
+class OrderStatusObject:
+    unsent = OrderStatusValue(0, "Unsent")
+    cancelled = OrderStatusValue(1, "Cancelled")
+    filled = OrderStatusValue(2, "Filled")
+    forFutureUse = OrderStatusValue(3, "For Future Use")
+    transit = OrderStatusValue(4, "Transit")
+    rejected = OrderStatusValue(5, "Rejected")
+    pending = OrderStatusValue(6, "Pending")
+
+    def getDescriptionForStatus(self, status):
+        if status < 0 or status > 6:
+            return "Invalid Status"
+        if status == 0:
+            return "Unsent"
+        if status == 1:
+            return "Cancelled"
+
+        if status == 2:
+            return "Filled"
+
+        if status == 3:
+            return "For Future Use"
+
+        if status == 4:
+            return "Transit"
+
+        if status == 5:
+            return "Rejected"
+
+        if status == 6:
+            return "Pending"
+
+
+OrderStatus = OrderStatusObject()
+
+
+########################### ORDER SIDE ###########################
+
+class OrderSideValue:
+    symbolNum: int = 0
+    description: str = "placeholder"
+
+    def __init__(self, symbolNum, description):
+        self.symbolNum = symbolNum
+        self.description = description
+
+
+class OrderSideObject:
+    Buy = OrderSideValue(1, "Buy")
+    Sell = OrderSideValue(-1, "Sell")
+    PlaceHolder = OrderSideValue(0, "Placeholder")
+
+
+OrderSide = OrderSideObject()
