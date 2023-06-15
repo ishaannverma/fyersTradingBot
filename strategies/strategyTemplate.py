@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 
 from modules.singleOrder import Order
-from modules.templates import StrategyStatus
+from modules.templates import StrategyStatus, StrategyStatusValue, getOrderSideObjectForSideNum
 from typing import Type, List
 from strategies.position import Position
 from queue import Queue
@@ -13,7 +13,7 @@ from modules.templates import LogType
 
 
 class Strategy(ABC):
-    _status: Type[type(StrategyStatus)] = StrategyStatus()
+    _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
     _strategyName: str = "Template"
     id: str = ""
     _ordersQueue: Type[type(Queue)] = None
@@ -50,7 +50,7 @@ class Strategy(ABC):
                     found = True
 
             if not found:
-                self.positions.append(Position(update['symbol'], update['qty'], update['side'], update['avgPrice']))
+                self.positions.append(Position(update['symbol'], update['qty'], getOrderSideObjectForSideNum(update['side']), update['avgPrice']))
 
     def placeOrder(self, order: Type[type(Order)]):
         order.strategyID = self.id
@@ -63,11 +63,11 @@ class Strategy(ABC):
         pass
 
     @abstractmethod
-    def _save_binary(self):
+    def save_binary(self):
         pass
 
     @abstractmethod
-    def _get_binary(self):
+    def from_binary(self):
         pass
 
     def start(self):

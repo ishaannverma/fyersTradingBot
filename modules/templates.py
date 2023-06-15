@@ -44,17 +44,22 @@ class ContractMonths:
 
 ########################### STRATEGY STATUS ###########################
 
-class StrategyStatus:
-    _code: int = 0
-    _description: str = "Untraded"
+class StrategyStatusValue:
+    code: int = 0
+    description: str = "untraded"
 
-    def setTrading(self):
-        self._code = 1
-        self._description = "Trading (active positions)"
+    def __init__(self, code, desc):
+        self.code = code
+        self.description = desc
 
-    def setClosed(self):
-        self._code = 2
-        self._description = "Positions closed"
+
+class StrategyStatusObject:
+    untraded = StrategyStatusValue(0, "untraded")
+    trading = StrategyStatusValue(1, "trading")
+    closed = StrategyStatusValue(-1, "closed")
+
+
+StrategyStatus = StrategyStatusObject()
 
 
 ########################### ORDER STATUS ###########################
@@ -123,6 +128,15 @@ class OrderSideObject:
 
 
 OrderSide = OrderSideObject()
+
+
+def getOrderSideObjectForSideNum(num):
+    if num == 1:
+        return OrderSide.Buy
+    if num == -1:
+        return OrderSide.Sell
+    if num == 0:
+        return OrderSide.PlaceHolder
 
 
 ########################### LOG TYPE ###########################

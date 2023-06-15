@@ -1,4 +1,8 @@
-from modules.Symbols import Symbols
+import json
+import os
+import pickle
+
+from modules.templates import LogType
 from strategies.strategyTemplate import Strategy
 from typing import Type
 from queue import Queue
@@ -12,10 +16,20 @@ class StrategyHandler:
     _logger = None
     _fyers = None
 
+    def loadSaved(self):
+        for fileName in os.listdir(self._logger.path):
+            if not fileName.endswith(".json"):
+                continue
+            self._logger.add_log(LogType.INFO, f"loading unclosed strategy {fileName.split('.')[0]}")
+            with open(os.path.join(self._logger.path, fileName), "rb") as file:
+                dataDict = json.load(file)
+                self._logger.add_log(LogType.DEBUG, dataDict)
+
     def __init__(self, fyers, logger):
         self._fyers = fyers
         self._logger = logger
         self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
+        self.loadSaved()
 
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy

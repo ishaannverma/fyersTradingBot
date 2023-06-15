@@ -3,7 +3,7 @@ import time
 from typing import Type, Dict
 
 from modules.logging import Logger
-from modules.templates import QueuesHandler, OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
+from modules.templates import OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
@@ -76,9 +76,7 @@ class Orders:
             time.sleep(3)
             order.status = OrderStatusObject.filled
             update = {
-                'symbol': order.symbol,
-                'orderID': "dummy",  # TODO is unnecessary?
-                'orderStatus': OrderStatusObject.filled.status,  # TODO is unnecessary?
+                'symbol': order.symbol.ticker,
                 'qty': order.quantity,
                 'avgPrice': order.symbol.ltp,
                 'side': order.side
