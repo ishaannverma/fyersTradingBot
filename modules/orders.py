@@ -9,7 +9,6 @@ from modules.keys import app_credentials
 from threading import Thread
 from modules.singleOrder import Order
 from queue import Queue
-from modules.Symbols import Symbols
 
 
 ########################### ORDERS WEBSOCKET ###########################
@@ -82,6 +81,7 @@ class Orders:
                 'side': order.side
             }
             self._updates_queues[order.strategyID].put(update)
+
         Thread(target=sendUpdateAfterWait).start()
 
     ########################### ORDERING ###########################
@@ -129,4 +129,3 @@ class Orders:
 
         startOrdersWebsocket(self._onSocketMessage, self._logger)
         threading.Thread(target=self.orderQueueListener).start()
-

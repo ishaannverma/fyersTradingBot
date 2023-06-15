@@ -103,7 +103,7 @@ class Symbol:
         self.ticker: str = symbol
         self.ltp: float = getQuoteData(fyers=fyers, ticker=self.ticker)
         self.time: float = datetime.datetime.now().timestamp()
-        self ._logger = logger
+        self._logger = logger
 
         if initWebsocket:
             self.startWebsocket(self._logger.logging_path)

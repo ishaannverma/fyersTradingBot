@@ -1,6 +1,5 @@
 import json
 import os
-import pickle
 
 from modules.templates import LogType, StrategyStatus
 from strategies.monthStraddle import MonthStraddle
@@ -35,7 +34,8 @@ class StrategyHandler:
                 self._logger.add_log(LogType.INFO, f"loading unclosed strategy {fileName.split('.')[0]}")
 
                 if strategyName == "MonthStraddle":
-                    strategyObject = MonthStraddle(None, None, self._fyers, self._symbolsHandler, self._logger, paperTrade).fill_from_json(dataDict)
+                    strategyObject = MonthStraddle(None, None, self._fyers, self._symbolsHandler, self._logger,
+                                                   paperTrade).fill_from_json(dataDict)
                     self.addStrategy(strategyObject)
 
                 # self._logger.add_log(LogType.DEBUG, dataDict)

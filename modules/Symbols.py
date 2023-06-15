@@ -20,7 +20,8 @@ class Symbols:
             return self._symbolsList[self._common_symbols[symbol]]
 
         if symbol in self._common_symbols:
-            symbolObject = Symbol(self._common_symbols[symbol], initWebsocket=True, fyers=self._fyers, logger=self._logger)
+            symbolObject = Symbol(self._common_symbols[symbol], initWebsocket=True, fyers=self._fyers,
+                                  logger=self._logger)
             self._symbolsList[self._common_symbols[symbol]] = symbolObject
         else:
             symbolObject = Symbol(symbol, initWebsocket=True, fyers=self._fyers, logger=self._logger)
