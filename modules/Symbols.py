@@ -20,12 +20,10 @@ class Symbols:
             return self._symbolsList[self._common_symbols[symbol]]
 
         if symbol in self._common_symbols:
-            symbolObject = Symbol(self._common_symbols[symbol], self._fyers)
-            symbolObject.startWebsocket(self._logger.path)
+            symbolObject = Symbol(self._common_symbols[symbol], initWebsocket=True, fyers=self._fyers, logger=self._logger)
             self._symbolsList[self._common_symbols[symbol]] = symbolObject
         else:
-            symbolObject = Symbol(symbol, self._fyers)
-            symbolObject.startWebsocket(self._logger.path)
+            symbolObject = Symbol(symbol, initWebsocket=True, fyers=self._fyers, logger=self._logger)
             self._symbolsList[symbol] = symbolObject
 
         return symbolObject

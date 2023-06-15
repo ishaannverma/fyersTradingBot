@@ -8,6 +8,8 @@ from modules.keys import app_credentials
 from modules.dateParsing import customDate
 import datetime
 
+from modules.logging import logger
+
 
 def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):
     data = {
@@ -43,12 +45,8 @@ class Symbol:
     ticker: str = ""
     ltp: float = ""
     time: float = ""
+    _logger: Type[type(logger)] = None
     _websocketThread = None
-
-    def __init__(self, symbol: str, fyers):
-        self.ticker: str = symbol
-        self.ltp: float = getQuoteData(fyers=fyers, ticker=self.ticker)
-        self.time: float = datetime.datetime.now().timestamp()
 
     def _onMessage(self, msg):
         self.ltp = float(msg[0]['ltp'])
@@ -58,6 +56,8 @@ class Symbol:
     ########################### THESE METHODS ARE EXPOSED ###########################
 
     def startWebsocket(self, logs):
+        if self._websocketThread is not None:
+            return self
         self._websocketThread = Thread(target=marketWebsocketMain,
                                        args=(self.ticker, self._onMessage, app_credentials['WS_ACCESS_TOKEN'], logs,))
         print(f'INFO: Starting websocket for {self.ticker}')
@@ -99,3 +99,12 @@ class Symbol:
 
         contract = underlying + str(year)[2:] + contract_month.M + dd + str(strike) + opt_type
         return contract
+
+    def __init__(self, symbol: str, initWebsocket: bool, logger, fyers):
+        self.ticker: str = symbol
+        self.ltp: float = getQuoteData(fyers=fyers, ticker=self.ticker)
+        self.time: float = datetime.datetime.now().timestamp()
+        self ._logger = logger
+
+        if initWebsocket:
+            self.startWebsocket(self._logger.path)
