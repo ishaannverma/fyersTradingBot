@@ -38,14 +38,14 @@ class Logger:
         if logType == LogType.FATAL:
             sys.exit(msg)
         elif logType == LogType.ERROR:
-            print(Fore.RED + msg)
+            print(Fore.RED + msg + Fore.RESET)
         elif logType == LogType.WARNING:
-            print(Fore.YELLOW + msg)
+            print(Fore.YELLOW + msg + Fore.RESET)
         elif logType == LogType.INFO:
-            print(Fore.BLUE + msg)
+            print(Fore.BLUE + msg + Fore.RESET)
         elif logType == LogType.UPDATE:
-            print(Fore.GREEN + msg)
+            print(Fore.GREEN + msg + Fore.RESET)
         elif logType == LogType.DEBUG:
-            print(Fore.RESET + msg)
+            print(msg)
         else:
-            print(Fore.RESET + msg)
+            print(msg)
