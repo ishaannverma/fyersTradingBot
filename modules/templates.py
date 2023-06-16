@@ -73,30 +73,6 @@ class OrderStatusValue:
         self.description = desc
 
 
-def getDescriptionForOrderStatus(status):
-    if status < 0 or status > 6:
-        return "Invalid Status"
-    if status == 0:
-        return "Unsent"
-    if status == 1:
-        return "Cancelled"
-
-    if status == 2:
-        return "Filled"
-
-    if status == 3:
-        return "For Future Use"
-
-    if status == 4:
-        return "Transit"
-
-    if status == 5:
-        return "Rejected"
-
-    if status == 6:
-        return "Pending"
-
-
 class OrderStatusObject:
     unsent = OrderStatusValue(0, "Unsent")
     cancelled = OrderStatusValue(1, "Cancelled")
@@ -105,6 +81,20 @@ class OrderStatusObject:
     transit = OrderStatusValue(4, "Transit")
     rejected = OrderStatusValue(5, "Rejected")
     pending = OrderStatusValue(6, "Pending")
+
+    def fromStatusInt(self, num: int):
+        if num == 1:
+            return self.cancelled
+        elif num == 2:
+            return self.filled
+        if num == 3:
+            return self.forFutureUse
+        elif num == 4:
+            return self.transit
+        if num == 5:
+            return self.rejected
+        elif num == 6:
+            return self.pending
 
 
 OrderStatus = OrderStatusObject()
@@ -136,6 +126,31 @@ class OrderSideObject:
 
 
 OrderSide = OrderSideObject()
+
+
+########################### POSITION STATUS ###########################
+
+class PositionStatusValue:
+    status: int = 1
+    description: str = "Open"
+
+    def __init__(self, stat, desc):
+        self.status = stat
+        self.description = desc
+
+
+class PositionStatusObject:
+    Closed = OrderStatusValue(0, "Closed")
+    Open = OrderStatusValue(1, "Open")
+
+    def fromStatusInt(self, num: int):
+        if num == 0:
+            return self.Closed
+        elif num == 1:
+            return self.Open
+
+
+PositionStatus = PositionStatusObject()
 
 
 ########################### LOG TYPE ###########################

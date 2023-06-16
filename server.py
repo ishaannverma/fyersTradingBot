@@ -30,8 +30,9 @@ indiavix = symbolsHandler.get('indiavix')
 
 strategiesHandler = StrategyHandler(fyers, symbolsHandler, logger)
 
-strategiesHandler.addStrategy(MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger, paperTrade=True))
-
+strategiesHandler.addStrategy(
+    MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger,
+                  paperTrade=True))
 
 ########################### TELEGRAM ###########################
 
@@ -43,6 +44,8 @@ telegram_commands = {
     'strat <stratID> pnl': 'Get PnL of given strategy',
 }
 
+
+# TODO add changes to positions and all to savefile too
 
 @telegram_bot.message_handler(commands=['help'])
 def telegramHelp(message):
@@ -89,11 +92,13 @@ def strategyFunc(message):
 
     if query == 'positions':
         reply = ""
-        for i, position in enumerate(stratObject.positions):
+        for i, (ticker, position) in enumerate(stratObject.positions.items()):
             if len(reply) != 0:
                 reply += "\n"
             reply += f"{i + 1}. {position.getIntro()}"
 
+        if len(reply) == 0:
+            reply = "no positions to show"
         telegram_bot.reply_to(message, reply)
         return
 

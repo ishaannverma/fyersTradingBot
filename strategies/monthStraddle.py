@@ -34,12 +34,12 @@ class MonthStraddle(Strategy):
 
     def get_snapshot_json(self):
         positions = []
-        for position in self.positions:
+        for ticker, position in self.positions.items():
             posDict = {
                 'ticker': position.symbol.ticker,
                 'qty': position.quantity,
-                'side': position.side.symbolNum,
                 'avgPrice': position.avgPrice,
+                'realizedPnL': position.realized_pnl
             }
             positions.append(posDict)
 
@@ -63,12 +63,12 @@ class MonthStraddle(Strategy):
         time.sleep(5)
         symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "PE")
         asset = self._symbolsHandler.get(symbol)
-        order = Order(asset, 50, OrderSide.Buy)
+        order = Order(asset, 50, OrderSide.Buy, paperTrade=self.paperTrade)
         self.placeOrder(order)
 
         symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "CE")
         asset = self._symbolsHandler.get(symbol)
-        order = Order(asset, 50, OrderSide.Buy)
+        order = Order(asset, 50, OrderSide.Buy, paperTrade=self.paperTrade)
         self.placeOrder(order)
 
         time.sleep(10)
@@ -97,10 +97,10 @@ class MonthStraddle(Strategy):
         info = jsonDict['info']
 
         for position in info['positions']:
-            posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], OrderSide.fromSideInteger(position['side']),
-                                 position['avgPrice'])
-            self.positions.append(posObject)
+            posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], position['avgPrice'], position['realized_pnl'])
+            self.positions[posObject.symbol.ticker].append(posObject)
 
         self.underlying = self._symbolsHandler.get(info['underlyingTicker'])
+        self.vix = self._symbolsHandler.get(info['indiavix'])
 
         return self

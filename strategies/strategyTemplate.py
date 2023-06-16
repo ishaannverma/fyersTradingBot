@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from threading import Thread
 
 from modules.singleOrder import Order
-from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide
-from typing import Type, List
+from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide, OrderStatus
+from typing import Type, List, Dict
 from strategies.position import Position
 from queue import Queue
 from modules.logging import Logger
@@ -24,7 +24,8 @@ class Strategy(ABC):
     _updatesQueue: Type[type(Queue)] = None
     _commandsQueue: Type[type(Queue)] = None
 
-    positions: List[type(Position)] = []
+    positions: Dict[str, type(Position)] = {}  # ticker to positions object
+    _orders: Dict[str, List[type(Order)]] = {}  # ticker to orders
 
     _killSwitch = False  # TODO use this
     _logger: Type[type(Logger)] = None
@@ -33,9 +34,9 @@ class Strategy(ABC):
     ########################### USED BY STRATEGIES HANDLER ###########################
 
     def getPnL(self):
-        pnl = 0
-        for position in self.positions:
-            pnl += position.getPnL()
+        pnl = 0  # TODO keep pnl of closed positions too
+        for ticker, position in self.positions.items():
+            pnl += position.getPositionPnL()
         return pnl
 
     def setQueues(self, orders, updates, commands):
@@ -45,29 +46,16 @@ class Strategy(ABC):
 
     ########################### USED OTHERWISE ###########################
     def _updatesQueueListener(self):
-        # TODO WARNING: this will update position to the latest update of that symbol
-        # TODO change this behavior, this way position will never be 0
         while True:
             if self._killSwitch:
                 return
 
-            update = self._updatesQueue.get()
-            # self._logger.add_log(LogType.DEBUG, update)
-            found = False
-            for position in self.positions:
-                if position.symbol.ticker == update['symbol']:
-                    position.quantity = update['qty']
-                    position.avgPrice = update['avgPrice']
-                    if found:
-                        self._logger.add_log(LogType.WARNING,
-                                             f"FOUND 2 INSTANCES OF SAME SYMBOL IN POSITION FOR STRATEGY {self.id}")
-                    found = True
-
-            if not found:
-                self.positions.append(
-                    Position(self._symbolsHandler.get(update['symbol']), update['qty'],
-                             OrderSide.fromSideInteger(update['side']),
-                             update['avgPrice']))
+            order = self._updatesQueue.get()  # returns order object
+            if order.status == OrderStatus.filled:
+                if order.symbol.ticker in self.positions:
+                    self.positions[order.symbol.ticker].addFilledOrder(order)
+                else:
+                    self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity, order.avgPrice)
 
     def _commandsQueueListener(self):
         while True:
@@ -85,11 +73,18 @@ class Strategy(ABC):
             order.paperTrade = True
         self._ordersQueue.put(order)
 
+        if order.symbol.ticker in self._orders:
+            self._orders[order.symbol.ticker].append(order)
+        else:
+            self._orders[order.symbol.ticker] = [order]
+
     def closeAllPositions(self):
-        for position in self.positions:
+        # close all positions
+        # TODO cancel all orders
+        for ticker, position in self.positions.items():
             asset = position.symbol
-            order = Order(asset, position.quantity,
-                          OrderSide.Buy if position.side == OrderSide.Sell else OrderSide.Sell)
+            order = Order(asset, position.orderedQuantity,
+                          OrderSide.Buy if position.quantity < 0 else OrderSide.Sell, paperTrade=self.paperTrade)
             self.placeOrder(order)
 
     def save_json(self):
