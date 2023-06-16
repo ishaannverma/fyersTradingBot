@@ -88,7 +88,7 @@ class Orders:
     def sendOrder(self, order: Type[type(Order)]):
         # TODO cancel if another order of same symbol pending
         data = {
-            "symbol": order.symbol.ticker,
+            "symbol": order.symbol.symbol,
             "qty": order.quantity,
             "type": 2,  # market order
             "limitPrice": 0,

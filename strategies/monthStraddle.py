@@ -36,7 +36,7 @@ class MonthStraddle(Strategy):
         positions = []
         for position in self.positions:
             posDict = {
-                'ticker': position.ticker,
+                'ticker': position.symbol.ticker,
                 'qty': position.quantity,
                 'side': position.side.symbolNum,
                 'avgPrice': position.avgPrice,
@@ -80,7 +80,7 @@ class MonthStraddle(Strategy):
         info = jsonDict['info']
 
         for position in info['positions']:
-            posObject = Position(position['ticker'], position['qty'], OrderSide.fromSideInteger(position['side']),
+            posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], OrderSide.fromSideInteger(position['side']),
                                  position['avgPrice'])
             self.positions.append(posObject)
 

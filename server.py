@@ -39,7 +39,7 @@ telegram_commands = {
     'help': 'Get all commands available with this bot',
     'getStrategies': 'All strategies running on the app',
     'strat <stratID> positions': 'Get positions in given strategy',
-    # 'strat <stratID> pnl': 'Get PnL of given strategy'
+    'strat <stratID> pnl': 'Get PnL of given strategy'
 }
 
 
@@ -65,7 +65,6 @@ def getStrategies(message):
 
 @telegram_bot.message_handler(commands=['strat', 's'])
 def strategyFunc(message):
-    sendTelegram(message.text)
     commands = message.text.split()
     if len(commands) != 3:
         telegram_bot.reply_to(message, f"invalid param length")
@@ -74,22 +73,28 @@ def strategyFunc(message):
     stratID = commands[1]
     query = commands[2]
 
-    if query == 'positions':
-        strategy = [(key, value) for key, value in strategiesHandler.strategies_dict.items() if key.startswith(stratID)]
-        if len(strategy) < 1:
-            telegram_bot.reply_to(message, f"no strat found with this stratID")
-            return
-        if len(strategy) > 1:
-            telegram_bot.reply_to(message, f"be more specific with the stratID")
-            return
+    strategy = [(key, value) for key, value in strategiesHandler.strategies_dict.items() if key.startswith(stratID)]
+    if len(strategy) < 1:
+        telegram_bot.reply_to(message, f"no strat found with this stratID")
+        return
+    if len(strategy) > 1:
+        telegram_bot.reply_to(message, f"be more specific with the stratID")
+        return
 
-        stratObject: Type[Strategy] = strategy[0][1]
+    stratObject: Type[type(Strategy)] = strategy[0][1]
+
+    if query == 'positions':
         reply = ""
         for i, position in enumerate(stratObject.positions):
             if len(reply) != 0:
                 reply += "\n"
             reply += f"{i + 1}. {position.getIntro()}"
 
+        telegram_bot.reply_to(message, reply)
+        return
+
+    if query == 'pnl':
+        reply = str(stratObject.getPnL())
         telegram_bot.reply_to(message, reply)
         return
 

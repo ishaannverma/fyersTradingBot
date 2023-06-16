@@ -33,7 +33,10 @@ class Strategy(ABC):
     ########################### USED BY STRATEGIES HANDLER ###########################
 
     def getPnL(self):
-        pass
+        pnl = 0
+        for position in self.positions:
+            pnl += position.getPnL()
+        return pnl
 
     def setQueues(self, orders, updates, commands):
         self._ordersQueue = orders
@@ -49,7 +52,7 @@ class Strategy(ABC):
             # self._logger.add_log(LogType.DEBUG, update)
             found = False
             for position in self.positions:
-                if position.ticker == update['symbol']:
+                if position.symbol.ticker == update['symbol']:
                     position.quantity = update['qty']
                     position.avgPrice = update['avgPrice']
                     if found:
@@ -59,7 +62,7 @@ class Strategy(ABC):
 
             if not found:
                 self.positions.append(
-                    Position(update['symbol'], update['qty'], OrderSide.fromSideInteger(update['side']),
+                    Position(self._symbolsHandler.get(update['symbol']), update['qty'], OrderSide.fromSideInteger(update['side']),
                              update['avgPrice']))
 
     def placeOrder(self, order: Type[type(Order)]):

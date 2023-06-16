@@ -122,8 +122,8 @@ class OrderSideValue:
 
 
 class OrderSideObject:
-    Buy = OrderSideValue(1, "Buy")
-    Sell = OrderSideValue(-1, "Sell")
+    Buy = OrderSideValue(1, "BUY")
+    Sell = OrderSideValue(-1, "SELL")
     PlaceHolder = OrderSideValue(0, "Placeholder")
 
     def fromSideInteger(self, num: int):
