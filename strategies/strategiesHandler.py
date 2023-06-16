@@ -11,6 +11,7 @@ from modules.orders import Orders
 
 class StrategyHandler:
     strategies_dict: Dict[str, type(Strategy)] = {}
+    _commands_queues: Dict[str, type(Queue)] = {}
     _ordering_module = None
     _ordering_module_orders_queue = Queue()  # from strategy to ordering module
     _logger = None
@@ -54,12 +55,20 @@ class StrategyHandler:
             self._logger.add_log(LogType.ERROR, f"Trying to add strategy with ID {strategyID} when one already exists")
             return strategyID
         self.strategies_dict[strategyID] = strategy
+        self._commands_queues[strategyID] = commandsQueue
 
         strategy.start()
         return strategyID
 
-    def removeStrategy(self):
-        pass
+    def removeStrategy(self, strategyID: str):
+        commands_queue = self._commands_queues[strategyID]
+        command = {
+            'command': 'kill'
+        }
+        commands_queue.put(command)  # strategy will close itself and return only once all positions are closed
+
+        self.strategies_dict.pop(strategyID)
+        self._commands_queues.pop(strategyID)
 
     def __init__(self, fyers, symbolsHandler, logger):
         self._fyers = fyers

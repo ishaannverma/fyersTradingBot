@@ -8,7 +8,7 @@ from modules.singleOrder import Order
 from strategies.position import Position
 from strategies.strategyTemplate import Strategy
 from modules.singleSymbol import Symbol
-from modules.templates import OrderSide, LogType
+from modules.templates import OrderSide, LogType, StrategyStatus, StrategyStatusValue
 
 
 class MonthStraddle(Strategy):
@@ -48,6 +48,7 @@ class MonthStraddle(Strategy):
             'id': self.id,
             'status': self._status.description,
             'paperTrade': self.paperTrade,
+            'killSwitch': self._killSwitch,
             'info': {
                 'positions': positions,
                 'underlyingTicker': self.underlying.ticker
@@ -73,8 +74,24 @@ class MonthStraddle(Strategy):
         time.sleep(10)
         self.save_json()
 
+        while True:
+            # real code starts from here
+            if self._killSwitch:
+                self.closeAllPositions()
+                while len(self.positions) != 0:
+                    time.sleep(5)
+                    # TODO remove this: for now assuming this works
+                    break
+                # all positions now closed
+
+                self._status: Type[type(StrategyStatusValue)] = StrategyStatus.closed
+                self.save_json()
+
+                return
+
     def fill_from_json(self, jsonDict):
         self.id = jsonDict['id']
+        self._killSwitch = jsonDict['killSwitch']
 
         # everything that's not in info has already been factored
         info = jsonDict['info']

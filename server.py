@@ -30,7 +30,7 @@ indiavix = symbolsHandler.get('indiavix')
 
 strategiesHandler = StrategyHandler(fyers, symbolsHandler, logger)
 
-# strategiesHandler.addStrategy(MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger, paperTrade=True))
+strategiesHandler.addStrategy(MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger, paperTrade=True))
 
 
 ########################### TELEGRAM ###########################
@@ -38,8 +38,9 @@ strategiesHandler = StrategyHandler(fyers, symbolsHandler, logger)
 telegram_commands = {
     'help': 'Get all commands available with this bot',
     'getStrategies': 'All strategies running on the app',
+    'strat <stratID> kill': 'Get PnL of given strategy',
     'strat <stratID> positions': 'Get positions in given strategy',
-    'strat <stratID> pnl': 'Get PnL of given strategy'
+    'strat <stratID> pnl': 'Get PnL of given strategy',
 }
 
 
@@ -82,6 +83,9 @@ def strategyFunc(message):
         return
 
     stratObject: Type[type(Strategy)] = strategy[0][1]
+
+    if query == 'kill':
+        strategiesHandler.removeStrategy(stratObject.id)
 
     if query == 'positions':
         reply = ""

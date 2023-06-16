@@ -48,6 +48,9 @@ class Strategy(ABC):
         # TODO WARNING: this will update position to the latest update of that symbol
         # TODO change this behavior, this way position will never be 0
         while True:
+            if self._killSwitch:
+                return
+
             update = self._updatesQueue.get()
             # self._logger.add_log(LogType.DEBUG, update)
             found = False
@@ -62,14 +65,32 @@ class Strategy(ABC):
 
             if not found:
                 self.positions.append(
-                    Position(self._symbolsHandler.get(update['symbol']), update['qty'], OrderSide.fromSideInteger(update['side']),
+                    Position(self._symbolsHandler.get(update['symbol']), update['qty'],
+                             OrderSide.fromSideInteger(update['side']),
                              update['avgPrice']))
+
+    def _commandsQueueListener(self):
+        while True:
+            if self._killSwitch:
+                return
+
+            msg = self._commandsQueue.get()
+            command = msg['command']
+            if command == 'kill':
+                self._killSwitch = True
 
     def placeOrder(self, order: Type[type(Order)]):
         order.strategyID = self.id
         if self.paperTrade:
             order.paperTrade = True
         self._ordersQueue.put(order)
+
+    def closeAllPositions(self):
+        for position in self.positions:
+            asset = position.symbol
+            order = Order(asset, position.quantity,
+                          OrderSide.Buy if position.side == OrderSide.Sell else OrderSide.Sell)
+            self.placeOrder(order)
 
     def save_json(self):
         data = self.get_snapshot_json()
@@ -105,3 +126,4 @@ class Strategy(ABC):
     def start(self):
         Thread(target=self._logic).start()
         Thread(target=self._updatesQueueListener).start()
+        Thread(target=self._commandsQueueListener).start()
