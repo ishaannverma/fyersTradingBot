@@ -4,13 +4,13 @@ import os
 from modules.templates import LogType, StrategyStatus
 from strategies.monthStraddle import MonthStraddle
 from strategies.strategyTemplate import Strategy
-from typing import Type
+from typing import Type, Dict
 from queue import Queue
 from modules.orders import Orders
 
 
 class StrategyHandler:
-    _strategies_list = []
+    strategies_dict: Dict[str, type(Strategy)] = {}
     _ordering_module = None
     _ordering_module_orders_queue = Queue()  # from strategy to ordering module
     _logger = None
@@ -40,14 +40,6 @@ class StrategyHandler:
 
                 # self._logger.add_log(LogType.DEBUG, dataDict)
 
-    def __init__(self, fyers, symbolsHandler, logger):
-        self._fyers = fyers
-        self._logger = logger
-        self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
-        self._symbolsHandler = symbolsHandler
-
-        self.loadSavedStrategies()
-
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy
         commandsQueue = Queue()  # from strategyHandler to strategy
@@ -58,10 +50,21 @@ class StrategyHandler:
         strategyID = strategy.id
 
         self._ordering_module.addStrategy(strategyID, updatesQueue)
-        self._strategies_list.append(strategy)
+        if strategyID in self.strategies_dict:
+            self._logger.add_log(LogType.ERROR, f"Trying to add strategy with ID {strategyID} when one already exists")
+            return strategyID
+        self.strategies_dict[strategyID] = strategy
 
         strategy.start()
         return strategyID
 
     def removeStrategy(self):
         pass
+
+    def __init__(self, fyers, symbolsHandler, logger):
+        self._fyers = fyers
+        self._logger = logger
+        self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
+        self._symbolsHandler = symbolsHandler
+
+        self.loadSavedStrategies()

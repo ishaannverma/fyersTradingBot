@@ -111,15 +111,16 @@ class Orders:
 
     # listening to order queue
     def orderQueueListener(self):
-        order = self._orders_queue.get()
-        self._logger.add_log(LogType.UPDATE, f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
-        if order.paperTrade:
-            order.status = OrderStatusObject.pending
-            self._sendDummyFilledUpdate(order)
-            return
-        self.sendOrder(order)
-        if order.status != OrderStatusObject.rejected:
-            self._orderIDToStrategyID[order.fyersID] = order.strategyID
+        while True:
+            order = self._orders_queue.get()
+            self._logger.add_log(LogType.UPDATE, f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
+            if order.paperTrade:
+                order.status = OrderStatusObject.pending
+                self._sendDummyFilledUpdate(order)
+                continue
+            self.sendOrder(order)
+            if order.status != OrderStatusObject.rejected:
+                self._orderIDToStrategyID[order.fyersID] = order.strategyID
 
     ########################### init ###########################
     def __init__(self, ordersQueue, fyers, logger):

@@ -12,7 +12,7 @@ from modules.templates import OrderSide, LogType
 
 
 class MonthStraddle(Strategy):
-    _strategyName: str = "MonthStraddle"
+    strategyName: str = "MonthStraddle"
     id: str = uuid4().hex
 
     underlying: Type[type(Symbol)] = None
@@ -27,6 +27,11 @@ class MonthStraddle(Strategy):
         self._logger = logger
         self.paperTrade = paperTrade
 
+    def getIntro(self, short: bool = True):
+        reply = f"{self.id} {self.strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}"
+        if short:
+            return reply
+
     def get_snapshot_json(self):
         positions = []
         for position in self.positions:
@@ -39,7 +44,7 @@ class MonthStraddle(Strategy):
             positions.append(posDict)
 
         data = {
-            'strategyName': self._strategyName,
+            'strategyName': self.strategyName,
             'id': self.id,
             'status': self._status.description,
             'paperTrade': self.paperTrade,
@@ -52,7 +57,7 @@ class MonthStraddle(Strategy):
 
     def _logic(self):
         self._logger.add_log(LogType.INFO,
-                             f"Starting logic for strategy {self._strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}")
+                             f"Starting logic for strategy {self.getIntro()}")
         # checking if it works
         time.sleep(5)
         symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "PE")
@@ -60,8 +65,13 @@ class MonthStraddle(Strategy):
         order = Order(asset, 50, OrderSide.Buy)
         self.placeOrder(order)
 
-        # time.sleep(10)
-        # self.save_json()
+        symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "CE")
+        asset = self._symbolsHandler.get(symbol)
+        order = Order(asset, 50, OrderSide.Buy)
+        self.placeOrder(order)
+
+        time.sleep(10)
+        self.save_json()
 
     def fill_from_json(self, jsonDict):
         self.id = jsonDict['id']

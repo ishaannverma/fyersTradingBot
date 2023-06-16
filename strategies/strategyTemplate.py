@@ -15,7 +15,7 @@ from modules.templates import LogType
 
 
 class Strategy(ABC):
-    _strategyName: str = "Template"
+    strategyName: str = "Template"
     id: str = ""
     _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
     paperTrade: bool = True
@@ -75,18 +75,20 @@ class Strategy(ABC):
         with open(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"), "w") as file:
             try:
                 json.dump(data, file)
-                self._logger.add_log(LogType.INFO, f"{self._strategyName} {self.id} successfully saved")
+                self._logger.add_log(LogType.INFO, f"{self.strategyName} {self.id} successfully saved")
             except Exception as e:
                 success = False
-                self._logger.add_log(LogType.ERROR, f"{self._strategyName} {self.id} could not be saved: {e}")
+                self._logger.add_log(LogType.ERROR, f"{self.strategyName} {self.id} could not be saved: {e}")
 
         if not success:
             os.remove(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"))
 
-    # TODO sending telegram messages on request of snapshot
-
     @abstractmethod
     def _logic(self):
+        pass
+
+    @abstractmethod
+    def getIntro(self, short: bool = True):
         pass
 
     @abstractmethod
