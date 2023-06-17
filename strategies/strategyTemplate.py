@@ -56,6 +56,7 @@ class Strategy(ABC):
                     self.positions[order.symbol.ticker].addFilledOrder(order)
                 else:
                     self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity, order.avgPrice)
+                self.save_json()
 
     def _commandsQueueListener(self):
         while True:

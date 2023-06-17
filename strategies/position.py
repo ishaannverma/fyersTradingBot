@@ -10,6 +10,7 @@ class Position:
     avgPrice: float = 0
 
     realized_pnl: float = 0
+    position_status: Type[type(PositionStatusValue)] = PositionStatus.Open
 
     def _getUnrealizedPnL(self) -> float:
         return self.quantity * (self.symbol.ltp - self.avgPrice)
@@ -31,10 +32,16 @@ class Position:
                 unitsRealized = self.quantity - newQuantity
                 self.realized_pnl += unitsRealized * (order.avgPrice - self.avgPrice)
 
-            elif newQuantity * self.quantity == 0:  # complete cancel out
-                newPrice = 0
-                unitsRealized = self.quantity - newQuantity
-                self.realized_pnl += unitsRealized * (order.avgPrice - self.avgPrice)
+            elif newQuantity * self.quantity == 0:  # either start with 0 or go to 0 self.quantity
+                if self.position_status == PositionStatus.Closed:   # adding position to closed position
+                    newQuantity = order.filledQuantity * order.side
+                    newPrice = order.avgPrice
+                    self.position_status = PositionStatus.Open
+                else:                                               # closing a position
+                    newPrice = 0
+                    unitsRealized = self.quantity - newQuantity
+                    self.realized_pnl += unitsRealized * (order.avgPrice - self.avgPrice)
+                    self.position_status = PositionStatus.Closed
 
             else:  # side changes
                 newPrice = order.avgPrice

@@ -60,7 +60,7 @@ class MonthStraddle(Strategy):
         self._logger.add_log(LogType.INFO,
                              f"Starting logic for strategy {self.getIntro()}")
         # checking if it works
-        time.sleep(5)
+        time.sleep(2)
         symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "PE")
         asset = self._symbolsHandler.get(symbol)
         order = Order(asset, 50, OrderSide.Buy, paperTrade=self.paperTrade)
@@ -72,7 +72,6 @@ class MonthStraddle(Strategy):
         self.placeOrder(order)
 
         time.sleep(10)
-        self.save_json()
 
         while True:
             # real code starts from here
@@ -80,7 +79,7 @@ class MonthStraddle(Strategy):
                 self.closeAllPositions()
                 while len(self.positions) != 0:
                     time.sleep(5)
-                    # TODO remove this: for now assuming this works
+                    # TODO remove this: for now assuming this works - condition for closing
                     break
                 # all positions now closed
 

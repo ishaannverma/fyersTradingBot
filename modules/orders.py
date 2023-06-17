@@ -115,8 +115,7 @@ class Orders:
     def orderQueueListener(self):
         while True:
             order = self._orders_queue.get()
-            if not order.paperTrade:
-                self._logger.add_log(LogType.UPDATE, f"Sending order for {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
+            self._logger.add_log(LogType.UPDATE, f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
 
             self.sendOrder(order)
 
