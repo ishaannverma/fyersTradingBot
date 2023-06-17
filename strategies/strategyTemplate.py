@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 
 from modules.singleOrder import Order
-from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide, OrderStatus
+from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide, OrderStatus, PositionStatus
 from typing import Type, List, Dict
 from strategies.position import Position
 from queue import Queue
@@ -17,7 +17,7 @@ from modules.templates import LogType
 class Strategy(ABC):
     strategyName: str = "Template"
     id: str = ""
-    _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
+    # _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
     paperTrade: bool = True
 
     _ordersQueue: Type[type(Queue)] = None
@@ -48,6 +48,7 @@ class Strategy(ABC):
     def _updatesQueueListener(self):
         while True:
             if self._killSwitch:
+                self._logger.add_log(LogType.DEBUG, "Closing updates queue from strategy because killswitch")
                 return
 
             order = self._updatesQueue.get()  # returns order object
@@ -56,11 +57,13 @@ class Strategy(ABC):
                     self.positions[order.symbol.ticker].addFilledOrder(order)
                 else:
                     self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity, order.avgPrice)
+
                 self.save_json()
 
     def _commandsQueueListener(self):
         while True:
             if self._killSwitch:
+                self._logger.add_log(LogType.DEBUG, "Closing commands queue from strategy because killswitch")
                 return
 
             msg = self._commandsQueue.get()
@@ -81,11 +84,15 @@ class Strategy(ABC):
 
     def closeAllPositions(self):
         # close all positions
-        # TODO cancel all orders
+        time.sleep(3)  # wait for all orders in pipeline to get executed
+
         for ticker, position in self.positions.items():
+            if position.position_status == PositionStatus.Closed:
+                continue
+
             asset = position.symbol
-            order = Order(asset, position.orderedQuantity,
-                          OrderSide.Buy if position.quantity < 0 else OrderSide.Sell, paperTrade=self.paperTrade)
+            order = Order(asset, position.quantity, OrderSide.Buy if position.quantity < 0 else OrderSide.Sell,
+                          paperTrade=self.paperTrade)
             self.placeOrder(order)
 
     def save_json(self):
@@ -120,6 +127,6 @@ class Strategy(ABC):
         pass
 
     def start(self):
-        Thread(target=self._logic).start()
-        Thread(target=self._updatesQueueListener).start()
         Thread(target=self._commandsQueueListener).start()
+        Thread(target=self._updatesQueueListener).start()
+        Thread(target=self._logic).start()

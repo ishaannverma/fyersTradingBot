@@ -30,18 +30,20 @@ indiavix = symbolsHandler.get('indiavix')
 
 strategiesHandler = StrategyHandler(fyers, symbolsHandler, logger)
 
-strategiesHandler.addStrategy(
-    MonthStraddle(symbol=nifty50, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger,
-                  paperTrade=True))
 
 ########################### TELEGRAM ###########################
 
 telegram_commands = {
     'help': 'Get all commands available with this bot',
     'getStrategies': 'All strategies running on the app',
+    'addStrategy <stratName or "help"> <comma separated args in parenthesis>': 'Add a strategy (send with keyword "help" for more info)',
     'strat <stratID> kill': 'Get PnL of given strategy',
     'strat <stratID> positions': 'Get positions in given strategy',
     'strat <stratID> pnl': 'Get PnL of given strategy',
+}
+
+addStratHelp = {
+    'MonthStraddle': "Monthly short straddle with expiry more than 7 days away. Args string = 'underlying=<nifty50>,paperTrade=<true>'"
 }
 
 
@@ -64,7 +66,55 @@ def getStrategies(message):
             reply += "\n"
         reply += f"{i + 1}. {strategy.getIntro()}"
 
+    if len(reply) == 0:
+        reply = "no strategies to show"
+
     telegram_bot.reply_to(message, reply)
+
+
+@telegram_bot.message_handler(commands=['addStrategy', 'add'])
+def addStrategy(message):
+    try:
+        keyword = message.text.split()[1]
+    except:
+        keyword = "help"
+
+    try:
+        argsString = message.text.split("(")[1][:-1]  # now both ( and ) are removed
+        signSeparated = argsString.split(",")
+        argsDict = {}
+        for pair in signSeparated:
+            k = pair.split("=")[0].strip()
+            v = pair.split("=")[1].strip()
+            argsDict[k.lower()] = v.lower()
+    except:
+        argsDict = {}
+
+    if keyword == "help":
+        reply = ""
+
+        for i, (stratName, stratInfo) in enumerate(addStratHelp.items()):
+            if len(reply) != 0:
+                reply += "\n"
+            reply += f"{i + 1}. {stratName} : {stratInfo}\n"
+
+        telegram_bot.reply_to(message, reply)
+        return
+
+    if keyword.lower() == "MonthStraddle".lower():
+        try:
+            underlying = symbolsHandler.get(argsDict['underlying'].lower())
+            paperTrade = True if argsDict['papertrade'] == 'true' else False
+        except:
+            telegram_bot.reply_to(message, f"ill formed args string")
+            return
+
+        stratID = strategiesHandler.addStrategy(
+            MonthStraddle(symbol=underlying, vix=indiavix, fyers=fyers, symbolsHandler=symbolsHandler, logger=logger,
+                          paperTrade=paperTrade))
+
+        telegram_bot.reply_to(message, stratID)
+        return
 
 
 @telegram_bot.message_handler(commands=['strat', 's'])

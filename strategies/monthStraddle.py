@@ -39,14 +39,14 @@ class MonthStraddle(Strategy):
                 'ticker': position.symbol.ticker,
                 'qty': position.quantity,
                 'avgPrice': position.avgPrice,
-                'realizedPnL': position.realized_pnl
+                'realized_pnl': position.realized_pnl
             }
             positions.append(posDict)
 
         data = {
             'strategyName': self.strategyName,
             'id': self.id,
-            'status': self._status.description,
+            # 'status': self._status.description,
             'paperTrade': self.paperTrade,
             'killSwitch': self._killSwitch,
             'info': {
@@ -84,6 +84,7 @@ class MonthStraddle(Strategy):
                 # all positions now closed
 
                 self._status: Type[type(StrategyStatusValue)] = StrategyStatus.closed
+                self._logger.add_log(LogType.DEBUG, "Closed logic from strategy because killswitch")
                 self.save_json()
 
                 return
@@ -97,9 +98,9 @@ class MonthStraddle(Strategy):
 
         for position in info['positions']:
             posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], position['avgPrice'], position['realized_pnl'])
-            self.positions[posObject.symbol.ticker].append(posObject)
+            self.positions[posObject.symbol.ticker] = (posObject)
 
         self.underlying = self._symbolsHandler.get(info['underlyingTicker'])
-        self.vix = self._symbolsHandler.get(info['indiavix'])
+        self.vix = self._symbolsHandler.get('indiavix')
 
         return self

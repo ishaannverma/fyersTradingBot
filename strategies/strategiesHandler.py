@@ -26,10 +26,11 @@ class StrategyHandler:
             with open(os.path.join(self._logger.strat_bin_path, fileName), "rb") as file:
                 dataDict = json.load(file)
                 strategyName = dataDict['strategyName']
-                status = dataDict['status']
+                # status = dataDict['status']
+                killSwitch = dataDict['killSwitch']
                 paperTrade = dataDict['paperTrade']
 
-                if status == StrategyStatus.closed.description:
+                if killSwitch:
                     continue
 
                 self._logger.add_log(LogType.INFO, f"loading unclosed strategy {fileName.split('.')[0]}")
@@ -58,6 +59,7 @@ class StrategyHandler:
         self._commands_queues[strategyID] = commandsQueue
 
         strategy.start()
+        # self._logger.add_log(LogType.UPDATE, f"Added {strategy.strategyName}")
         return strategyID
 
     def removeStrategy(self, strategyID: str):
