@@ -2,7 +2,6 @@ import os
 import sys
 from pprint import pprint
 
-from modules.telegram import sendTelegram
 from typing import Type
 from modules.templates import LogTypeValue, LogType, LogLevel
 import colorama
@@ -13,9 +12,11 @@ class Logger:
     logging_path = ""
     strat_bin_path = ""
     _logLevel: int = LogLevel.ALL
+    _sendTelegram = None
 
-    def __init__(self, logLevel):
+    def __init__(self, logLevel, sendTelegram):
         self._logLevel = logLevel
+        self._sendTelegram = sendTelegram
 
         self.logging_path = os.path.join(os.getcwd(), 'logs')
         if not os.path.exists(self.logging_path):
@@ -30,7 +31,7 @@ class Logger:
         msg = f"{logType.description}: {message}"
 
         if sendTelegramMessage or logType == LogType.UPDATE:
-            sendTelegram(msg)
+            self._sendTelegram(msg)
 
         if self._logLevel < logType.num:
             return
@@ -38,14 +39,14 @@ class Logger:
         if logType == LogType.FATAL:
             sys.exit(msg)
         elif logType == LogType.ERROR:
-            print(Fore.RED + msg)
+            print(Fore.RED + msg + Fore.RESET)
         elif logType == LogType.WARNING:
-            print(Fore.YELLOW + msg)
+            print(Fore.YELLOW + msg + Fore.RESET)
         elif logType == LogType.INFO:
-            print(Fore.BLUE + msg)
+            print(Fore.BLUE + msg + Fore.RESET)
         elif logType == LogType.UPDATE:
-            print(Fore.GREEN + msg)
+            print(Fore.GREEN + msg + Fore.RESET)
         elif logType == LogType.DEBUG:
-            print(Fore.RESET + msg)
+            print(msg)
         else:
-            print(Fore.RESET + msg)
+            print(msg)

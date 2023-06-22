@@ -1,9 +1,10 @@
 import threading
 import time
+from random import randint
 from typing import Type, Dict
 
 from modules.logging import Logger
-from modules.templates import OrderStatusObject, OrderSide, getDescriptionForOrderStatus, LogType
+from modules.templates import OrderStatusObject, OrderSide, LogType, OrderStatus, OrderStatusValue
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
@@ -31,9 +32,7 @@ class Orders:
     _updates_queues: Dict[str, type(Queue)] = {}  # strategy ID to updates queue
     _orders_queue: Type[type(Queue)] = None
     _fyers = None
-    _orderIDToStrategyID = {
-        # TODO make function to build this
-    }
+    _ordersDict: Dict[str, type(Order)] = {}  # from fyersID to Order object
     _logger: Type[type(Logger)] = None
 
     ########################### ADDING AND REMOVING STRATEGIES ###########################
@@ -43,53 +42,55 @@ class Orders:
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
         # self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
+        time.sleep(1)
         if msg['s'] != 'ok':
             return
         info = msg['d']
 
-        symbol = info['symbol']
+        # symbol = info['symbol']
         fyersID = info['id']
-        orderStatus = info['status']
+        orderStatus: Type[type(OrderStatusValue)] = OrderStatus.fromStatusInt(info['status'])
         qty = info['filledQty']
-        side = info['side']
-        side = OrderSide.Buy if side == 1 else OrderSide.Sell
         price = info['tradedPrice']
-        update = {
-            'symbol': symbol,
-            'orderID': fyersID,  # TODO is unnecessary?
-            'orderStatus': orderStatus,  # TODO is unnecessary?
-            'qty': qty,
-            'avgPrice': price,
-            'side': side
-        }
 
-        self._updates_queues[self._orderIDToStrategyID[fyersID]].put(update)
+        self._ordersDict[fyersID].updateOrder(qty, orderStatus, price)  # update order object
+        self._updates_queues[self._ordersDict[fyersID].strategyID].put(
+            self._ordersDict[fyersID])  # send order object to Strategy
 
-        if orderStatus == OrderStatusObject.rejected.status or orderStatus == OrderStatusObject.filled.status or orderStatus == OrderStatusObject.cancelled.status:
-            self._logger.add_log(LogType.DEBUG,
-                                 f"Removing order for {symbol} from strategy {self._orderIDToStrategyID[fyersID]} because order status is ({getDescriptionForOrderStatus(orderStatus)})")
-            self._orderIDToStrategyID.pop(fyersID)
+        if orderStatus == OrderStatus.rejected or orderStatus == OrderStatus.filled or orderStatus == OrderStatus.cancelled:
+            self._ordersDict.pop(fyersID)
 
-    def _sendDummyFilledUpdate(self, order: Type[type(Order)]):
+    def _sendDummyFilledUpdate(self, order: Type[type(Order)], dummyID: str):
         def sendUpdateAfterWait():
             time.sleep(3)
-            order.status = OrderStatusObject.filled
-            update = {
-                'symbol': order.symbol.ticker,
-                'qty': order.quantity,
-                'avgPrice': order.symbol.ltp,
-                'side': order.side
+            msg = {
+                's': 'ok',
+                'd': {
+                    'id': dummyID,
+                    'symbol': order.symbol.ticker,
+                    'status': OrderStatus.filled.status,
+                    'filledQty': order.orderedQuantity,
+                    'tradedPrice': order.symbol.ltp,
+                    'side': order.side
+                }
             }
-            self._updates_queues[order.strategyID].put(update)
+            self._onSocketMessage(msg)
 
         Thread(target=sendUpdateAfterWait).start()
 
     ########################### ORDERING ###########################
     def sendOrder(self, order: Type[type(Order)]):
-        # TODO cancel if another order of same symbol pending
+        if order.paperTrade:
+            dummyID = f"dummyID-{randint(0,10000)}"
+            order.fyersID = dummyID
+            order.status = OrderStatus.pending
+            self._ordersDict[order.fyersID] = order
+            self._sendDummyFilledUpdate(order, dummyID)
+            return
+
         data = {
             "symbol": order.symbol.ticker,
-            "qty": order.quantity,
+            "qty": order.orderedQuantity,
             "type": 2,  # market order
             "limitPrice": 0,
             "stopPrice": 0,
@@ -101,25 +102,22 @@ class Orders:
         }
 
         response = self._fyers.place_order(data)
-        self._logger.add_log(LogType.DEBUG, response)
+        # self._logger.add_log(LogType.DEBUG, response)
 
         if response['s'] != "ok":
-            order.status = OrderStatusObject.rejected
+            order.status = OrderStatus.rejected
             return
         order.fyersID = response['id']
-        order.status = OrderStatusObject.pending
+        self._ordersDict[order.fyersID] = order
+        order.status = OrderStatus.pending
 
     # listening to order queue
     def orderQueueListener(self):
-        order = self._orders_queue.get()
-        self._logger.add_log(LogType.UPDATE, f"Sending order for {order.symbol.ticker}, paper = {order.paperTrade}")
-        if order.paperTrade:
-            order.status = OrderStatusObject.pending
-            self._sendDummyFilledUpdate(order)
-            return
-        self.sendOrder(order)
-        if order.status != OrderStatusObject.rejected:
-            self._orderIDToStrategyID[order.fyersID] = order.strategyID
+        while True:
+            order = self._orders_queue.get()
+            self._logger.add_log(LogType.UPDATE, f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {OrderSide.fromSideInteger(order.side).description} {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
+
+            self.sendOrder(order)
 
     ########################### init ###########################
     def __init__(self, ordersQueue, fyers, logger):
