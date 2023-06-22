@@ -57,19 +57,23 @@ class MonthStraddle(Strategy):
         return data
 
     def _logic(self):
-        self._logger.add_log(LogType.INFO,
-                             f"Starting logic for strategy {self.getIntro()}")
-        # checking if it works
-        time.sleep(2)
-        symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "PE")
-        asset = self._symbolsHandler.get(symbol)
-        order = Order(asset, 50, OrderSide.Buy, paperTrade=self.paperTrade)
-        self.placeOrder(order)
+        if not self.openPositionsExist():
+            self._logger.add_log(LogType.INFO,
+                                 f"Starting logic for strategy {self.getIntro()}")
+            # checking if it works
+            time.sleep(2)
+            symbol = self.underlying.getMonthlyExpiryAfterNDays(25, "closestabsolute", "PE")
+            asset = self._symbolsHandler.get(symbol)
+            order = Order(asset, 50, OrderSide.Sell, paperTrade=self.paperTrade)
+            self.placeOrder(order)
 
-        symbol = self.underlying.getMonthlyExpiryAfterNDays(0, 17500, "CE")
-        asset = self._symbolsHandler.get(symbol)
-        order = Order(asset, 50, OrderSide.Buy, paperTrade=self.paperTrade)
-        self.placeOrder(order)
+            symbol = self.underlying.getMonthlyExpiryAfterNDays(25, "closestabsolute", "CE")
+            asset = self._symbolsHandler.get(symbol)
+            order = Order(asset, 50, OrderSide.Sell, paperTrade=self.paperTrade)
+            self.placeOrder(order)
+
+        # else: # if open positions exist
+
 
         time.sleep(10)
 
@@ -78,7 +82,7 @@ class MonthStraddle(Strategy):
             if self._killSwitch:
                 self.closeAllPositions()
                 while len(self.positions) != 0:
-                    time.sleep(5)
+                    time.sleep(50)
                     # TODO remove this: for now assuming this works - condition for closing
                     break
                 # all positions now closed

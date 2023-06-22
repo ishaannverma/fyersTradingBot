@@ -63,7 +63,24 @@ class Symbol:
         self._websocketThread.start()
         return self
 
-    def getMonthlyExpiryAfterNDays(self, n: int, strike: int, opt_type: str):
+    def _getStrikePrice(self, method: str):
+        if method.lower() == "closestvol":
+            if self.ticker == "NSE:NIFTY50-INDEX" or self.ticker == "NSE:BANKNIFTY-INDEX":
+                return int(self.ltp / 100) * 100 if self.ltp % 100 < 50 else (int(self.ltp / 100) + 1) * 100
+
+        if method.lower() == "closestabsolute":
+            if self.ticker == "NSE:NIFTY50-INDEX" or self.ticker == "NSE:BANKNIFTY-INDEX":
+                lastTwo = self.ltp % 100
+                if lastTwo <= 25:
+                    return int(self.ltp / 100) * 100
+                elif lastTwo < 75:
+                    return (int(self.ltp / 100) * 100) + 50
+                else:
+                    return (int(self.ltp / 100) + 1) * 100
+
+        return -1
+
+    def getMonthlyExpiryAfterNDays(self, n: int, strike, opt_type: str):
         # Equity Options (Monthly Expiry)
         # {Ex}:{Ex_UnderlyingSymbol}{YY}{MMM}{Strike}{Opt_Type}
         # NSE:NIFTY20OCT11000CE
@@ -75,10 +92,13 @@ class Symbol:
         if underlying == "NSE:NIFTY50":
             underlying = "NSE:NIFTY"
 
+        if type(strike) == str:
+            strike = self._getStrikePrice(strike)
+
         contract = underlying + str(year)[2:] + contract_month.MMM + str(strike) + opt_type
         return contract
 
-    def getWeeklyExpiryAfterNDays(self, n: int, strike: int, opt_type: str):
+    def getWeeklyExpiryAfterNDays(self, n: int, strike, opt_type: str):
         # Equity Options (Weekly Expiry)
         # {Ex}:{Ex_UnderlyingSymbol}{YY}{M}{dd}{Strike}{Opt_Type}
         # NSE:NIFTY20O0811000CE
@@ -91,6 +111,9 @@ class Symbol:
         underlying = self.ticker.split("-")[0]
         if underlying == "NSE:NIFTY50":
             underlying = "NSE:NIFTY"
+
+        if type(strike) == str:
+            strike = self._getStrikePrice(strike)
 
         dd = str(date)
         if len(dd) == 1:

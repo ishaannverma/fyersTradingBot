@@ -82,6 +82,14 @@ class Strategy(ABC):
         else:
             self._orders[order.symbol.ticker] = [order]
 
+    def openPositionsExist(self) -> bool:
+        ans = False
+        for ticker, position in self.positions.items():
+            if position.position_status == PositionStatus.Open:
+                ans = True
+                break
+        return ans
+
     def closeAllPositions(self):
         # close all positions
         time.sleep(3)  # wait for all orders in pipeline to get executed
