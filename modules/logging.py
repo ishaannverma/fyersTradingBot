@@ -3,7 +3,7 @@ import sys
 from pprint import pprint
 
 from typing import Type
-from modules.templates import LogTypeValue, LogType, LogLevel
+from modules.templates import LogType, LogLevel
 import colorama
 from colorama import Fore
 
@@ -12,11 +12,9 @@ class Logger:
     logging_path = ""
     strat_bin_path = ""
     _logLevel: int = LogLevel.ALL
-    _sendTelegram = None
 
-    def __init__(self, logLevel, sendTelegram):
+    def __init__(self, logLevel: Type[type(LogLevel)]):
         self._logLevel = logLevel
-        self._sendTelegram = sendTelegram
 
         self.logging_path = os.path.join(os.getcwd(), 'logs')
         if not os.path.exists(self.logging_path):
@@ -27,11 +25,8 @@ class Logger:
             os.mkdir(self.strat_bin_path)
 
     # TODO: add option to send telegram of this too
-    def add_log(self, logType: Type[type(LogTypeValue)], message: str, sendTelegramMessage: bool = False):
+    def add_log(self, logType: Type[type(LogType)], message: str):
         msg = f"{logType.description}: {message}"
-
-        if sendTelegramMessage or logType == LogType.UPDATE:
-            self._sendTelegram(msg)
 
         if self._logLevel < logType.num:
             return
