@@ -1,12 +1,12 @@
 import json
 import os
 
-from modules.templates import LogType, StrategyStatus
-from strategies.monthStraddle import MonthStraddle
-from strategies.strategyTemplate import Strategy
+from modules.logic.templates import LogType
+from modules.strategies.supported.monthStraddle import MonthStraddle
+from modules.strategies.supported.strategyTemplate import Strategy
 from typing import Type, Dict
 from queue import Queue
-from modules.orders import Orders
+# from modules.logic.orders import Orders TODO uncomment this!!!
 
 
 class StrategyHandler:
@@ -75,7 +75,7 @@ class StrategyHandler:
     def __init__(self, fyers, symbolsHandler, logger):
         self._fyers = fyers
         self._logger = logger
-        self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger)
+        # self._ordering_module = Orders(self._ordering_module_orders_queue, self._fyers, self._logger) TODO uncomment!!!
         self._symbolsHandler = symbolsHandler
 
         self.loadSavedStrategies()

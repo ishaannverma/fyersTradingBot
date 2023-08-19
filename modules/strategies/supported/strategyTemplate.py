@@ -1,17 +1,16 @@
 import json
 import os
 import time
-import uuid
 from abc import ABC, abstractmethod
 from threading import Thread
 
-from modules.singleOrder import Order
-from modules.templates import StrategyStatus, StrategyStatusValue, OrderSide, OrderStatus, PositionStatus
+from modules.logic.singleOrder import Order
+from modules.logic.templates import OrderSide, OrderStatus, PositionStatus
 from typing import Type, List, Dict
-from strategies.position import Position
+from modules.strategies.position import Position
 from queue import Queue
-from modules.logging import Logger
-from modules.templates import LogType
+from modules.logging.logging import Logger
+from modules.logic.templates import LogType
 
 
 class Strategy(ABC):

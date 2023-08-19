@@ -1,14 +1,13 @@
 import time
-from threading import Thread
 from uuid import uuid4
-from typing import Type, List
+from typing import Type
 
-from modules.Symbols import Symbols
-from modules.singleOrder import Order
-from strategies.position import Position
-from strategies.strategyTemplate import Strategy
-from modules.singleSymbol import Symbol
-from modules.templates import OrderSide, LogType, StrategyStatus, StrategyStatusValue
+from modules.strategies.Symbols import Symbols
+from modules.logic.singleOrder import Order
+from modules.strategies.position import Position
+from modules.strategies.supported.strategyTemplate import Strategy
+from modules.strategies.singleSymbol import Symbol
+from modules.logic.templates import OrderSide, LogType, StrategyStatus, StrategyStatusValue
 
 
 class MonthStraddle(Strategy):

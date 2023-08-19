@@ -3,12 +3,12 @@ import time
 from random import randint
 from typing import Type, Dict
 
-from modules.logging import Logger
-from modules.templates import OrderStatusObject, OrderSide, LogType, OrderStatus, OrderStatusValue
+from modules.logging.logging import Logger
+from modules.logic.templates import OrderSide, LogType, OrderStatus, OrderStatusValue
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
 from threading import Thread
-from modules.singleOrder import Order
+from modules.logic.singleOrder import Order
 from queue import Queue
 
 

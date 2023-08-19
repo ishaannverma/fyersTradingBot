@@ -1,10 +1,8 @@
 import os
 import sys
-from pprint import pprint
 
 from typing import Type
-from modules.templates import LogType, LogLevel
-import colorama
+from modules.logic.templates import LogType, LogLevel
 from colorama import Fore
 
 
@@ -45,3 +43,6 @@ class Logger:
             print(msg)
         else:
             print(msg)
+
+
+loggerObject = Logger(LogLevel.DEBUG)

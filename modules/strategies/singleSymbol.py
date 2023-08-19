@@ -4,11 +4,10 @@ from datetime import datetime
 from fyers_api.Websocket import ws
 from threading import Thread
 from modules.keys import app_credentials
-from modules.dateParsing import customDate
+from modules.logic.dateParsing import customDate
 import datetime
 
-from modules.logging import Logger
-from modules.templates import LogType
+from modules.logging.logging import Logger
 
 
 def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):

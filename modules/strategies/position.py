@@ -1,7 +1,7 @@
-from modules.singleOrder import Order
-from modules.templates import OrderSideValue, OrderSide, PositionStatusValue, PositionStatus
-from modules.singleSymbol import Symbol
-from typing import Type, Dict
+from modules.logic.singleOrder import Order
+from modules.logic.templates import OrderSide, PositionStatusValue, PositionStatus
+from modules.strategies.singleSymbol import Symbol
+from typing import Type
 
 
 class Position:

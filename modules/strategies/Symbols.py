@@ -1,4 +1,4 @@
-from modules.singleSymbol import Symbol
+from modules.strategies.singleSymbol import Symbol
 
 
 class Symbols:
