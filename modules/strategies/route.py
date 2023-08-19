@@ -5,7 +5,7 @@ from modules.strategies.strategiesHandler import StrategyHandler
 
 from flask import Blueprint, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SelectField, IntegerField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from modules.logging.logging import loggerObject as logger
 
@@ -22,6 +22,13 @@ supportedStrategies = {
     }
 }
 
+
+class AddStratForm(FlaskForm):
+    paperTrade = BooleanField('Is this a paper trade?', validators=[DataRequired()])
+    stratName = SelectField('Strat Name', choices=supportedStrategies.keys(), validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
 strategies_blueprint = Blueprint('strategies', __name__, url_prefix="/strategies", template_folder="templates")
 
 
@@ -32,6 +39,7 @@ strategies_blueprint = Blueprint('strategies', __name__, url_prefix="/strategies
 def getSupportedStrategies():
     return list(supportedStrategies.keys())
 
+
 @strategies_blueprint.route('running')
 def getRunningStrategies():
     response = []
@@ -40,6 +48,21 @@ def getRunningStrategies():
         response.append([strategy.getIntro(), strategy.getPnL()])
 
     return response
-@strategies_blueprint.route('add')
+
+
+@strategies_blueprint.route('add', methods=['GET', 'POST'])
 def addStrategy():
-    return render_template('add_strat.html', strategies=supportedStrategies.keys())
+    paperTrade = True
+    stratName = None
+    form = AddStratForm()
+
+    if form.validate_on_submit():
+        paperTrade = form.paperTrade.data
+        stratName = form.stratName.data
+        print(f"{paperTrade}, {stratName}")
+
+        return "Success message"
+
+        # set this to none, empty here TODO
+
+    return render_template('add_strat.html', stratName=stratName, paperTrade=paperTrade, form=form)

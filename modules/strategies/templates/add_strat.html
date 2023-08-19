@@ -5,15 +5,17 @@
     <title>Add Strategy</title>
 </head>
 <body>
-    <form>
-        <label for="strat-name"> Strategy Name: </label><br>
-        <select name="strat-name" id="strat-name">
-            {% for strat in strategies %}
-            <option value="{{ strat }}">{{ strat }}</option>
-            {% endfor %}
-        </select>
+    <form method="POST">
+        {{ form.hidden_tag() }}
 
-        <input type="submit">
+        {{ form.paperTrade.label }}
+        {{ form.paperTrade() }}
+        <br>
+        {{ form.stratName.label }}
+        {{ form.stratName() }}
+        <br>
+
+        {{ form.submit() }}
     </form>
 </body>
 </html>
