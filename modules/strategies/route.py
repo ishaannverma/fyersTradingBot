@@ -37,7 +37,7 @@ strategies_blueprint = Blueprint('strategies', __name__, url_prefix="/strategies
 
 @strategies_blueprint.route('supported')
 def getSupportedStrategies():
-    return list(supportedStrategies.keys())
+    return render_template('supported_strats.html', strats=supportedStrategies)
 
 
 @strategies_blueprint.route('running')
@@ -47,7 +47,7 @@ def getRunningStrategies():
     for i, (stratID, strategy) in enumerate(strategiesHandler.strategies_dict.items()):
         response.append([strategy.getIntro(), strategy.getPnL()])
 
-    return response
+    return render_template('active_strats.html', strats=response)
 
 
 @strategies_blueprint.route('add', methods=['GET', 'POST'])

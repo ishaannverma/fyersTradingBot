@@ -1,0 +1,18 @@
+{% extends "home.html" %}
+
+{% block component %}
+    <table>
+        <tr>
+            <th>Intro</th>
+            <th>PnL</th>
+        </tr>
+
+        {% for intro,pnl in strats %}
+        <tr>
+            <td>intro</td>
+            <td>pnl</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

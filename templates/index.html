@@ -11,17 +11,7 @@
 
         {% include 'navbar.html' %}
 
-        {% block content %}
-        <label for="strategy">Choose a dog name:</label>
-            <select name="strategy-names" id="strategy">
-                <option value="rigatoni">Rigatoni</option>
-                <option value="dave">Dave</option>
-                <option value="pumpernickel">Pumpernickel</option>
-                <option value="reeses">Reeses</option>
-            </select>
-
-
-        {% endblock %}
+        {% block content %}{% endblock %}
         <h1 id="demo">Hey</h1>
 
     <script src="{{ url_for('static', filename='js/myfile.js') }}" ></script>

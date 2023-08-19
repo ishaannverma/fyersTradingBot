@@ -1,0 +1,18 @@
+{% extends "home.html" %}
+
+{% block component %}
+    <table>
+        <tr>
+            <th>Strategy</th>
+            <th>Description</th>
+        </tr>
+        
+        {% for name, val in strats.items() %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ val['description'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+{% endblock %}

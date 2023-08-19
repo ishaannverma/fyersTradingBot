@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Strategy</title>
-</head>
-<body>
+{% extends "home.html" %}
+
+{% block component %}
     <form method="POST">
         {{ form.hidden_tag() }}
 
@@ -17,5 +13,4 @@
 
         {{ form.submit() }}
     </form>
-</body>
-</html>
+{% endblock %}
