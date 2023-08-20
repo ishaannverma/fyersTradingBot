@@ -20,7 +20,7 @@ from flask import Blueprint, request, redirect, url_for
 from modules.logging.logging import loggerObject as logger
 from modules.logic.templates import LogType
 
-fyers_model = Model()
+fyers_model_class_obj = Model()
 login_blueprint = Blueprint('login', __name__, static_folder='modules/login/static',
                             template_folder='modules/login/templates',
                             url_prefix='/login')
@@ -42,8 +42,8 @@ def loginStarter(logger=logger, autoLogin: bool = True):
                 newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'],
                                                  token=app_credentials['ACCESS_TOKEN'],
                                                  log_path=logger.logging_path)
-                fyers_model.setModel(newmodel)
-                if fyers_model.checkValidityofModel(tokenTime, logger):
+                fyers_model_class_obj.setModel(newmodel)
+                if fyers_model_class_obj.checkValidityofModel(tokenTime, logger):
                     logger.add_log(LogType.INFO, "Auto Login through saved credentials successful!")
                     return redirect(url_for('index'))
             except Exception as e:
@@ -54,7 +54,6 @@ def loginStarter(logger=logger, autoLogin: bool = True):
 
 @login_blueprint.route('generateurl')
 def login(logger=logger):
-    # TODO front landing page if autologin
 
     # if not, make new model
     # Step 1
@@ -82,8 +81,8 @@ def redirecturi():
     newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
                                      log_path=logger.logging_path)
 
-    fyers_model.setModel(newmodel)
+    fyers_model_class_obj.setModel(newmodel)
 
-    if fyers_model.checkConnection(logger):
+    if fyers_model_class_obj.checkConnection(logger):
         logger.add_log(LogType.INFO, "Login through redirection successful!")
     return redirect(url_for('index'))

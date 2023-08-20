@@ -1,4 +1,4 @@
-from modules.login.route import fyers_model
+from modules.login.login_route import fyers_model_class_obj
 from flask import Blueprint
 import pandas as pd
 
@@ -6,7 +6,7 @@ positions_blueprint = Blueprint('positions', __name__, url_prefix='/positions')
 
 @positions_blueprint.route('')
 def positions():
-    rsp = fyers_model.model.positions()
+    rsp = fyers_model_class_obj.getModel().positions()
     if rsp['code'] == 200:
         positions =  rsp['netPositions']
         data = []

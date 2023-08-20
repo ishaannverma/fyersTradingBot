@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from modules.keys import app_credentials
 import os
 from modules.logic.templates import LogType
+from flask import url_for, redirect
 
 loginLogLocation = os.path.join(os.getcwd(), 'logs', 'login.txt')
 
@@ -16,11 +17,12 @@ session = accessToken.SessionModel(
 
 from modules.logging.logging import loggerObject as logger
 
+
 class Model:
-    model = None
+    _model = None
 
     def setModel(self, newmodel):
-        self.model = newmodel
+        self._model = newmodel
 
     def checkValidityofModel(self, tokenTime, logger=logger):
         timeDiff = datetime.now() - tokenTime
@@ -32,7 +34,7 @@ class Model:
             logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
         try:
-            response = self.model.get_profile()
+            response = self._model.get_profile()
             if response['code'] == 200:
                 return True
             else:
@@ -44,19 +46,25 @@ class Model:
 
     def checkConnection(self, logger=logger):
         response = None
+        if self._model is None:
+            return False
         try:
-            response = self.model.get_profile()
+            response = self.getModel().get_profile()
         except Exception as e:
-            logger.add_log(LogType.ERROR, f"Problem connecting: {e}")
+            logger.add_log(LogType.DEBUG, f"Problem connecting: {e}")
             return False
 
         if response['code'] == 200:
-            logger.add_log(LogType.INFO, "Connection Verified!")
-            return response['data']['fy_id']
+            logger.add_log(LogType.DEBUG, "Connection Verified!")
+            return True
         else:
-            logger.add_log(LogType.ERROR, f"Problem connecting: {response['s']}")
+            logger.add_log(LogType.DEBUG, f"Problem connecting: {response['s']}")
 
         return False
 
-
-
+    def getModel(self):
+        return self._model
+        # if self.checkConnection(logger):
+        #     return self._model
+        # else:
+        #     return "Problem with getModel(), please reload"

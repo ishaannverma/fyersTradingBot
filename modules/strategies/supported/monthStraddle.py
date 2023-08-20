@@ -8,6 +8,7 @@ from modules.strategies.position import Position
 from modules.strategies.supported.strategyTemplate import Strategy
 from modules.strategies.singleSymbol import Symbol
 from modules.logic.templates import OrderSide, LogType, StrategyStatus, StrategyStatusValue
+from modules.logging.logging import loggerObject as logger
 
 
 class MonthStraddle(Strategy):
@@ -17,13 +18,11 @@ class MonthStraddle(Strategy):
     underlying: Type[type(Symbol)] = None
     vix: Type[type(Symbol)] = None
 
-    def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], fyers, symbolsHandler: Type[type(Symbols)],
-                 logger, paperTrade=True):
+    def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], symbolsHandler: Type[type(Symbols)],
+                 paperTrade=True):  # TODO change hardcoded True
         self._symbolsHandler = symbolsHandler
         self.underlying = symbol
         self.vix = vix
-        self._fyers = fyers
-        self._logger = logger
         self.paperTrade = paperTrade
 
     def getIntro(self, short: bool = True):
@@ -57,8 +56,8 @@ class MonthStraddle(Strategy):
 
     def _logic(self):
         if not self.openPositionsExist():
-            self._logger.add_log(LogType.INFO,
-                                 f"Starting logic for strategy {self.getIntro()}")
+            logger.add_log(LogType.INFO,
+                           f"Starting logic for strategy {self.getIntro()}")
             # checking if it works
             time.sleep(2)
             symbol = self.underlying.getMonthlyExpiryAfterNDays(25, "closestabsolute", "PE")
@@ -73,7 +72,6 @@ class MonthStraddle(Strategy):
 
         # else: # if open positions exist
 
-
         time.sleep(10)
 
         while True:
@@ -87,7 +85,7 @@ class MonthStraddle(Strategy):
                 # all positions now closed
 
                 self._status: Type[type(StrategyStatusValue)] = StrategyStatus.closed
-                self._logger.add_log(LogType.DEBUG, "Closed logic from strategy because killswitch")
+                logger.add_log(LogType.DEBUG, "Closed logic from strategy because killswitch")
                 self.save_json()
 
                 return
@@ -100,8 +98,9 @@ class MonthStraddle(Strategy):
         info = jsonDict['info']
 
         for position in info['positions']:
-            posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], position['avgPrice'], position['realized_pnl'])
-            self.positions[posObject.symbol.ticker] = (posObject)
+            posObject = Position(self._symbolsHandler.get(position['ticker']), position['qty'], position['avgPrice'],
+                                 position['realized_pnl'])
+            self.positions[posObject.symbol.ticker] = posObject
 
         self.underlying = self._symbolsHandler.get(info['underlyingTicker'])
         self.vix = self._symbolsHandler.get('indiavix')

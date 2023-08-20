@@ -7,11 +7,14 @@
             <th>PnL</th>
         </tr>
 
-        {% for intro,pnl in strats %}
-        <tr>
-            <td>intro</td>
-            <td>pnl</td>
-        </tr>
+        {% for strat in strats %}
+
+            <tr>
+
+                <td><a href="{{ url_for('server.strategies.position', stratID=strat['id']) }}">{{ strat['intro'] }} </a></td>
+
+                <td>{{ strat['pnl'] }}</td>
+            </tr>
         {% endfor %}
     </table>
 

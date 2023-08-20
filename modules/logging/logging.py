@@ -18,7 +18,7 @@ class Logger:
         if not os.path.exists(self.logging_path):
             os.mkdir(self.logging_path)
 
-        self.strat_bin_path = os.path.join(os.getcwd(), 'strat_bin')
+        self.strat_bin_path = os.path.join(self.logging_path, 'strat_bin')
         if not os.path.exists(self.strat_bin_path):
             os.mkdir(self.strat_bin_path)
 
@@ -45,4 +45,4 @@ class Logger:
             print(msg)
 
 
-loggerObject = Logger(LogLevel.DEBUG)
+loggerObject = Logger(LogLevel.INFO)

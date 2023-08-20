@@ -1,5 +1,5 @@
 from typing import Type
-from fyers_api import fyersModel
+from modules.login.login_route import fyers_model_class_obj as fyers
 from datetime import datetime
 from fyers_api.Websocket import ws
 from threading import Thread
@@ -7,15 +7,15 @@ from modules.keys import app_credentials
 from modules.logic.dateParsing import customDate
 import datetime
 
-from modules.logging.logging import Logger
+from modules.logging.logging import loggerObject as logger
 
 
-def getQuoteData(fyers: Type[type(fyersModel.FyersModel)], ticker: str):
+def getQuoteData(ticker: str):
     data = {
         'symbols': ticker
     }
 
-    response = fyers.quotes(data)
+    response = fyers.getModel().quotes(data)
     try:
         cmd = response['d'][0]['v']['cmd']['c']
     except:
@@ -43,7 +43,6 @@ class Symbol:
     ticker: str = ""
     ltp: float = ""
     time: float = ""
-    _logger: Type[type(Logger)] = None
     _websocketThread = None
 
     def _onMessage(self, msg):
@@ -121,11 +120,10 @@ class Symbol:
         contract = underlying + str(year)[2:] + contract_month.M + dd + str(strike) + opt_type
         return contract
 
-    def __init__(self, symbol: str, initWebsocket: bool, logger, fyers):
+    def __init__(self, symbol: str, initWebsocket: bool):
         self.ticker: str = symbol
-        self.ltp: float = getQuoteData(fyers=fyers, ticker=self.ticker)
+        self.ltp: float = getQuoteData(ticker=self.ticker)
         self.time: float = datetime.datetime.now().timestamp()
-        self._logger = logger
 
         if initWebsocket:
-            self.startWebsocket(self._logger.logging_path)
+            self.startWebsocket(logger.logging_path)

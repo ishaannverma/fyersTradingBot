@@ -9,7 +9,7 @@ from modules.logic.templates import OrderSide, OrderStatus, PositionStatus
 from typing import Type, List, Dict
 from modules.strategies.position import Position
 from queue import Queue
-from modules.logging.logging import Logger
+from modules.logging.logging import loggerObject as logger
 from modules.logic.templates import LogType
 
 
@@ -27,16 +27,18 @@ class Strategy(ABC):
     _orders: Dict[str, List[type(Order)]] = {}  # ticker to orders
 
     _killSwitch = False  # TODO use this
-    _logger: Type[type(Logger)] = None
     _symbolsHandler = None
 
     ########################### USED BY STRATEGIES HANDLER ###########################
 
     def getPnL(self):
+        realized = 0
+        unrealized = 0
         pnl = 0  # TODO keep pnl of closed positions too
-        for ticker, position in self.positions.items():
-            pnl += position.getPositionPnL()
-        return pnl
+        for position in self.positions.values():
+            realized += position.realized_pnl
+            unrealized += position.getUnrealizedPnL()
+        return realized, unrealized
 
     def setQueues(self, orders, updates, commands):
         self._ordersQueue = orders
@@ -47,7 +49,7 @@ class Strategy(ABC):
     def _updatesQueueListener(self):
         while True:
             if self._killSwitch:
-                self._logger.add_log(LogType.DEBUG, "Closing updates queue from strategy because killswitch")
+                logger.add_log(LogType.DEBUG, "Closing updates queue from strategy because killswitch")
                 return
 
             order = self._updatesQueue.get()  # returns order object
@@ -55,14 +57,14 @@ class Strategy(ABC):
                 if order.symbol.ticker in self.positions:
                     self.positions[order.symbol.ticker].addFilledOrder(order)
                 else:
-                    self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity, order.avgPrice)
+                    self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity * order.side, order.avgPrice)
 
                 self.save_json()
 
     def _commandsQueueListener(self):
         while True:
             if self._killSwitch:
-                self._logger.add_log(LogType.DEBUG, "Closing commands queue from strategy because killswitch")
+                logger.add_log(LogType.DEBUG, "Closing commands queue from strategy because killswitch")
                 return
 
             msg = self._commandsQueue.get()
@@ -106,19 +108,20 @@ class Strategy(ABC):
         data = self.get_snapshot_json()
 
         success = True
-        with open(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"), "w") as file:
+        with open(os.path.join(logger.strat_bin_path, f"{self.id}.json"), "w") as file:
             try:
                 json.dump(data, file)
-                self._logger.add_log(LogType.INFO, f"{self.strategyName} {self.id} successfully saved")
+                logger.add_log(LogType.INFO, f"{self.strategyName} {self.id} successfully saved")
             except Exception as e:
                 success = False
-                self._logger.add_log(LogType.ERROR, f"{self.strategyName} {self.id} could not be saved: {e}")
+                logger.add_log(LogType.ERROR, f"{self.strategyName} {self.id} could not be saved: {e}")
 
         if not success:
-            os.remove(os.path.join(self._logger.strat_bin_path, f"{self.id}.json"))
+            os.remove(os.path.join(logger.strat_bin_path, f"{self.id}.json"))
 
     @abstractmethod
     def _logic(self):
+        print("galt")
         pass
 
     @abstractmethod

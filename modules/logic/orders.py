@@ -3,7 +3,8 @@ import time
 from random import randint
 from typing import Type, Dict
 
-from modules.logging.logging import Logger
+from modules.login.login_route import fyers_model_class_obj as fyers
+from modules.logging.logging import loggerObject as logger
 from modules.logic.templates import OrderSide, LogType, OrderStatus, OrderStatusValue
 from fyers_api.Websocket import ws
 from modules.keys import app_credentials
@@ -14,14 +15,30 @@ from queue import Queue
 
 ########################### ORDERS WEBSOCKET ###########################
 def run_process_order_update(onMessage, access_token, log_path):
-    data_type = "orderUpdate"
-    fs = ws.FyersSocket(access_token=access_token, log_path=log_path)
-    fs.websocket_data = onMessage
-    fs.subscribe(data_type=data_type)
-    fs.keep_running()
+    def websocketInstance():
+        data_type = "orderUpdate"
+        fs = ws.FyersSocket(access_token=access_token, log_path=log_path)
+        fs.websocket_data = onMessage
+        fs.subscribe(data_type=data_type)
+        fs.keep_running()
+
+    while True:
+        try:
+            websocketInstance()
+        except:
+            # retry in 10 seconds
+            obj = time.localtime()
+            if obj.tm_wday > 4 :
+                # if saturday or sunday, sleep for 6 hours
+                time.sleep(6 * 60 * 60)
+            elif obj.tm_hour < 8 or obj.tm_hour > 16:
+                time.sleep(60*60)
+            else:
+                time.sleep(10)
 
 
-def startOrdersWebsocket(onMessage, logger):
+
+def startOrdersWebsocket(onMessage):
     thread = Thread(target=run_process_order_update,
                     args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.logging_path,))
     logger.add_log(LogType.INFO, 'Starting orders websocket')
@@ -31,9 +48,7 @@ def startOrdersWebsocket(onMessage, logger):
 class Orders:
     _updates_queues: Dict[str, type(Queue)] = {}  # strategy ID to updates queue
     _orders_queue: Type[type(Queue)] = None
-    _fyers = None
     _ordersDict: Dict[str, type(Order)] = {}  # from fyersID to Order object
-    _logger: Type[type(Logger)] = None
 
     ########################### ADDING AND REMOVING STRATEGIES ###########################
     def addStrategy(self, strategyID, updatesQueue):
@@ -41,7 +56,6 @@ class Orders:
 
     ########################### WEBSOCKET ###########################
     def _onSocketMessage(self, msg):
-        # self._logger.add_log(LogType.DEBUG, "orders websocket:\n" + str(msg))
         time.sleep(1)
         if msg['s'] != 'ok':
             return
@@ -101,8 +115,7 @@ class Orders:
             "validity": "IOC"
         }
 
-        response = self._fyers.place_order(data)
-        # self._logger.add_log(LogType.DEBUG, response)
+        response = fyers.getModel().place_order(data)
 
         if response['s'] != "ok":
             order.status = OrderStatus.rejected
@@ -115,15 +128,13 @@ class Orders:
     def orderQueueListener(self):
         while True:
             order = self._orders_queue.get()
-            self._logger.add_log(LogType.UPDATE, f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {OrderSide.fromSideInteger(order.side).description} {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
+            logger.add_log(LogType.UPDATE, f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {OrderSide.fromSideInteger(order.side).description} {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
 
             self.sendOrder(order)
 
     ########################### init ###########################
-    def __init__(self, ordersQueue, fyers, logger):
-        self._fyers = fyers
+    def __init__(self, ordersQueue):
         self._orders_queue = ordersQueue
-        self._logger = logger
 
-        startOrdersWebsocket(self._onSocketMessage, self._logger)
+        startOrdersWebsocket(self._onSocketMessage)
         threading.Thread(target=self.orderQueueListener).start()
