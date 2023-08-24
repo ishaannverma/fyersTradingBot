@@ -1,4 +1,6 @@
 from typing import Type
+
+from modules.logic.templates import LogType
 from modules.login.login_route import fyers_model_class_obj as fyers
 from datetime import datetime
 from fyers_api.Websocket import ws
@@ -57,7 +59,7 @@ class Symbol:
             return self
         self._websocketThread = Thread(target=marketWebsocketMain,
                                        args=(self.ticker, self._onMessage, app_credentials['WS_ACCESS_TOKEN'], logs,))
-        # self._logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
+        logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
         self._websocketThread.start()
         return self
 

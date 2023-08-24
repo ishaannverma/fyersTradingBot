@@ -93,4 +93,3 @@ def position(stratID):
         'positions': positionsIntro
     }
     return render_template('strategy_info.html', stratjson=stratJSON)
-# TODO can't add two strats!

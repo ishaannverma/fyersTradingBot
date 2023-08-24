@@ -43,7 +43,6 @@ class StrategyHandler:
                                                    paperTrade).fill_from_json(dataDict)
                     self.addStrategy(strategyObject)
 
-                # self._logger.add_log(LogType.DEBUG, dataDict)
 
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy

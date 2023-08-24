@@ -1,6 +1,6 @@
 import time
 from uuid import uuid4
-from typing import Type
+from typing import Type, Dict, List
 
 from modules.strategies.Symbols import Symbols
 from modules.logic.singleOrder import Order
@@ -12,11 +12,6 @@ from modules.logging.logging import loggerObject as logger
 
 
 class MonthStraddle(Strategy):
-    strategyName: str = "MonthStraddle"
-    id: str = uuid4().hex
-
-    underlying: Type[type(Symbol)] = None
-    vix: Type[type(Symbol)] = None
 
     def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], symbolsHandler: Type[type(Symbols)],
                  paperTrade=True):  # TODO change hardcoded True
@@ -24,6 +19,14 @@ class MonthStraddle(Strategy):
         self.underlying = symbol
         self.vix = vix
         self.paperTrade = paperTrade
+
+        self.strategyName: str = "MonthStraddle"
+        self.id: str = uuid4().hex  # _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
+
+        self.positions: Dict[str, type(Position)] = {}  # ticker to positions object
+        self._orders: Dict[str, List[type(Order)]] = {}  # ticker to orders
+
+        self._killSwitch = False  # TODO use this
 
     def getIntro(self, short: bool = True):
         reply = f"{self.id} {self.strategyName} for symbol = {self.underlying.ticker} with paperTrade = {self.paperTrade}"

@@ -45,4 +45,4 @@ class Logger:
             print(msg)
 
 
-loggerObject = Logger(LogLevel.INFO)
+loggerObject = Logger(LogLevel.DEBUG)

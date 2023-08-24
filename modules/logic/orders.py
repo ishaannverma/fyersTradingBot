@@ -25,17 +25,20 @@ def run_process_order_update(onMessage, access_token, log_path):
     while True:
         try:
             websocketInstance()
-        except:
-            # retry in 10 seconds
-            obj = time.localtime()
-            if obj.tm_wday > 4 :
-                # if saturday or sunday, sleep for 6 hours
-                time.sleep(6 * 60 * 60)
-            elif obj.tm_hour < 8 or obj.tm_hour > 16:
-                time.sleep(60*60)
-            else:
-                time.sleep(10)
+        except Exception as e:
+            logger.add_log(LogType.DEBUG, f"Failed to establish/maintain orders websocket connection: {e}")
+            time.sleep(5)
 
+            # retry in 10 seconds
+            # TODO this code might not run if hosted on a VM not in India
+            # obj = time.localtime()
+            # if obj.tm_wday > 4 :
+            #     # if saturday or sunday, sleep for 6 hours
+            #     time.sleep(6 * 60 * 60)
+            # elif obj.tm_hour < 8 or obj.tm_hour > 16:
+            #     time.sleep(60*60)
+            # else:
+            #     time.sleep(10)
 
 
 def startOrdersWebsocket(onMessage):
@@ -95,7 +98,7 @@ class Orders:
     ########################### ORDERING ###########################
     def sendOrder(self, order: Type[type(Order)]):
         if order.paperTrade:
-            dummyID = f"dummyID-{randint(0,10000)}"
+            dummyID = f"dummyID-{randint(0, 10000)}"
             order.fyersID = dummyID
             order.status = OrderStatus.pending
             self._ordersDict[order.fyersID] = order
@@ -128,7 +131,8 @@ class Orders:
     def orderQueueListener(self):
         while True:
             order = self._orders_queue.get()
-            logger.add_log(LogType.UPDATE, f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {OrderSide.fromSideInteger(order.side).description} {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
+            logger.add_log(LogType.UPDATE,
+                           f"Sending {'papertrade' if order.paperTrade else 'fyers trading'} order for {OrderSide.fromSideInteger(order.side).description} {order.orderedQuantity} {order.symbol.ticker} @ cmp = {order.symbol.ltp}")
 
             self.sendOrder(order)
 

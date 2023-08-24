@@ -38,7 +38,7 @@ class Strategy(ABC):
         for position in self.positions.values():
             realized += position.realized_pnl
             unrealized += position.getUnrealizedPnL()
-        return realized, unrealized
+        return round(realized, 1), round(unrealized, 1)
 
     def setQueues(self, orders, updates, commands):
         self._ordersQueue = orders
@@ -57,7 +57,8 @@ class Strategy(ABC):
                 if order.symbol.ticker in self.positions:
                     self.positions[order.symbol.ticker].addFilledOrder(order)
                 else:
-                    self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity * order.side, order.avgPrice)
+                    self.positions[order.symbol.ticker] = Position(order.symbol, order.filledQuantity * order.side,
+                                                                   order.avgPrice)
 
                 self.save_json()
 
