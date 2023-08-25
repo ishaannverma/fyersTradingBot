@@ -107,7 +107,7 @@ class Model:
             return False, "Model doesn't exist/ not set up yet"
 
         try:
-            rsp = self._model.place_order(quotes_data)
+            rsp = self._model.quotes(quotes_data)
             if rsp['code'] == 200:
                 status = True
                 return_value = rsp
@@ -140,14 +140,14 @@ class Model:
         else:
             logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
-        try:
-            response = self._model.get_profile()
-            if response['code'] == 200:
-                return True
+            status, response = self.get_profile()
+            if status is True:
+                if response['code'] == 200:
+                    return True
+                else:
+                    logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
             else:
                 logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
-        except Exception as e:
-            logger.add_log(LogType.ERROR, f"Couldn't autologin: {e}")
 
         return False
 
