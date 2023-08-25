@@ -17,11 +17,14 @@ def getQuoteData(ticker: str):
         'symbols': ticker
     }
 
-    response = fyers.getModel().quotes(data)
-    try:
-        cmd = response['d'][0]['v']['cmd']['c']
-    except:
-        cmd = response['d'][0]['v']['lp']
+    status, response = fyers.quotes(data)
+    if status is True:
+        try:
+            cmd = response['d'][0]['v']['cmd']['c']
+        except:
+            cmd = response['d'][0]['v']['lp']
+    else:
+        return f"Error fetching quote data: {response}"
 
     return cmd
 
