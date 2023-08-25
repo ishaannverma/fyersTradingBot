@@ -118,9 +118,9 @@ class Orders:
             "validity": "IOC"
         }
 
-        response = fyers.getModel().place_order(data)
+        status, response = fyers.place_order(data)
 
-        if response['s'] != "ok":
+        if status is False:
             order.status = OrderStatus.rejected
             return
         order.fyersID = response['id']

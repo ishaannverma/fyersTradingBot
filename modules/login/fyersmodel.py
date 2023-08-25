@@ -19,7 +19,114 @@ from modules.logging.logging import loggerObject as logger
 
 
 class Model:
-    _model = None
+
+    def __init__(self):
+        self._model = None
+
+    ########################### DEFINE WRAPPER FUNCTIONS ###########################
+
+    def get_profile(self):
+        # if status is false, return_value will have error msg
+        if not self._model_exists():
+            return False, "Model doesn't exist/ not set up yet"
+
+        try:
+            rsp = self._model.get_profile()
+            if rsp['code'] == 200:
+                status = True
+                return_value = rsp
+            else:
+                status = False
+                return_value = rsp['msg']
+        except Exception as e:
+            status = False
+            return_value = e
+
+        return status, return_value
+
+    def funds(self):
+        # if status is false, return_value will have error msg
+        if not self._model_exists():
+            return False, "Model doesn't exist/ not set up yet"
+
+        try:
+            rsp = self._model.funds()
+            if rsp['code'] == 200:
+                status = True
+                return_value = rsp
+            else:
+                status = False
+                return_value = rsp['msg']
+        except Exception as e:
+            status = False
+            return_value = e
+
+        return status, return_value
+
+    def positions(self):
+        # if status is false, return_value will have error msg
+        if not self._model_exists():
+            return False, "Model doesn't exist/ not set up yet"
+
+        try:
+            rsp = self._model.positions()
+            if rsp['code'] == 200:
+                status = True
+                return_value = rsp
+            else:
+                status = False
+                return_value = rsp['msg']
+        except Exception as e:
+            status = False
+            return_value = e
+
+        return status, return_value
+
+    def place_order(self, order_data):
+        # if status is false, return_value will have error msg
+        if not self._model_exists():
+            return False, "Model doesn't exist/ not set up yet"
+
+        try:
+            rsp = self._model.place_order(order_data)
+            if rsp['code'] == 200:
+                status = True
+                return_value = rsp
+            else:
+                status = False
+                return_value = rsp['msg']
+        except Exception as e:
+            status = False
+            return_value = e
+
+        return status, return_value
+
+    def quotes(self, quotes_data):
+        # if status is false, return_value will have error msg
+        if not self._model_exists():
+            return False, "Model doesn't exist/ not set up yet"
+
+        try:
+            rsp = self._model.quotes(quotes_data)
+            if rsp['code'] == 200:
+                status = True
+                return_value = rsp
+            else:
+                status = False
+                return_value = rsp['msg']
+        except Exception as e:
+            status = False
+            return_value = e
+
+        return status, return_value
+
+    ########################### MODEL METHODS ###########################
+
+    def _model_exists(self):
+        if self._model is None:
+            return False
+
+        return True
 
     def setModel(self, newmodel):
         self._model = newmodel
@@ -33,38 +140,28 @@ class Model:
         else:
             logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
 
-        try:
-            response = self._model.get_profile()
-            if response['code'] == 200:
-                return True
+            status, response = self.get_profile()
+            if status is True:
+                if response['code'] == 200:
+                    return True
+                else:
+                    logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
             else:
                 logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
-        except Exception as e:
-            logger.add_log(LogType.ERROR, f"Couldn't autologin: {e}")
 
         return False
 
     def checkConnection(self, logger=logger):
-        response = None
-        if self._model is None:
-            return False
-        try:
-            response = self.getModel().get_profile()
-        except Exception as e:
-            logger.add_log(LogType.DEBUG, f"Problem connecting: {e}")
+        status, response = self.get_profile()
+
+        if status is False:
+            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response}")
             return False
 
         if response['code'] == 200:
             logger.add_log(LogType.DEBUG, "Connection Verified!")
             return True
         else:
-            logger.add_log(LogType.DEBUG, f"Problem connecting: {response['s']}")
+            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response['s']}")
 
         return False
-
-    def getModel(self):
-        return self._model
-        # if self.checkConnection(logger):
-        #     return self._model
-        # else:
-        #     return "Problem with getModel(), please reload"
