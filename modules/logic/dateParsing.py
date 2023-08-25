@@ -1,6 +1,6 @@
 import datetime
 import calendar
-from modules.templates import ContractMonths
+from modules.logic.templates import ContractMonths
 
 
 class customDate:

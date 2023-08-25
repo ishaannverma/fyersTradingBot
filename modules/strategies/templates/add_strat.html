@@ -1,0 +1,16 @@
+{% extends "home.html" %}
+
+{% block component %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.paperTrade.label }}
+        {{ form.paperTrade() }}
+        <br>
+        {{ form.stratName.label }}
+        {{ form.stratName() }}
+        <br>
+
+        {{ form.submit() }}
+    </form>
+{% endblock %}

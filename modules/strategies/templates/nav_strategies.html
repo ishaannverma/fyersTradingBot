@@ -1,0 +1,10 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="text-right">
+        <div class="col-11">
+            <a class="navbar-brand" href="{{ url_for('server.strategies.getRunningStrategies') }}">Active</a>
+            <a class="navbar-brand" href="{{ url_for('server.strategies.getSupportedStrategies') }}">Supported</a>
+            <a class="navbar-brand" href="{{ url_for('server.strategies.addStrategy') }}">Add New</a>
+
+        </div>
+    </div>
+</nav>

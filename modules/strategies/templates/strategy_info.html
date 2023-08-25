@@ -1,0 +1,30 @@
+{% extends "home.html" %}
+
+{% block component %}
+<h1>Strategy {{ stratjson['strategyName'] }} : {{ stratjson['id'] }}</h1><br>
+<h3>Paper Trade = {{ stratjson['paperTrade'] }}</h3>
+
+<h2>Trades: Realized {{ stratjson['realized'] }}    Unrealized {{ stratjson['unrealized'] }}</h2><br>
+
+{% if stratjson['positions'] | length == 0 %}
+<h2>No positions to show</h2>
+
+{% else %}
+    <table>
+        <tr>
+            {% for heading in stratjson['positions'][0].keys() %}
+            <th>{{ heading.capitalize() }}</th>
+            {% endfor %}
+        </tr>
+
+        {% for pos in stratjson['positions'] %}
+        <tr>
+            {% for data in pos.values() %}
+                <td>{{ data }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% endblock %}

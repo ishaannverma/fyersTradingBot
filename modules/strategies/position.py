@@ -1,22 +1,22 @@
-from modules.singleOrder import Order
-from modules.templates import OrderSideValue, OrderSide, PositionStatusValue, PositionStatus
-from modules.singleSymbol import Symbol
-from typing import Type, Dict
+from modules.logic.singleOrder import Order
+from modules.logic.templates import OrderSide, PositionStatusValue, PositionStatus
+from modules.strategies.singleSymbol import Symbol
+from typing import Type
 
 
 class Position:
     symbol: Type[type(Symbol)] = None
-    quantity: int = 0
+    quantity: int = 0  # can be negative
     avgPrice: float = 0
 
     realized_pnl: float = 0
     position_status: Type[type(PositionStatusValue)] = PositionStatus.Open
 
-    def _getUnrealizedPnL(self) -> float:
+    def getUnrealizedPnL(self) -> float:
         return self.quantity * (self.symbol.ltp - self.avgPrice)
 
     def getPositionPnL(self):
-        return self._getUnrealizedPnL() + self.realized_pnl
+        return self.getUnrealizedPnL() + self.realized_pnl
 
     def addFilledOrder(self, order: Type[Order]):
         newQuantity = self.quantity + (order.filledQuantity * order.side)
@@ -33,11 +33,11 @@ class Position:
                 self.realized_pnl += unitsRealized * (order.avgPrice - self.avgPrice)
 
             elif newQuantity * self.quantity == 0:  # either start with 0 or go to 0 self.quantity
-                if self.position_status == PositionStatus.Closed:   # adding position to closed position
+                if self.position_status == PositionStatus.Closed:  # adding position to closed position
                     newQuantity = order.filledQuantity * order.side
                     newPrice = order.avgPrice
                     self.position_status = PositionStatus.Open
-                else:                                               # closing a position
+                else:  # closing a position
                     newPrice = 0
                     unitsRealized = self.quantity - newQuantity
                     self.realized_pnl += unitsRealized * (order.avgPrice - self.avgPrice)
@@ -51,9 +51,20 @@ class Position:
         self.quantity = newQuantity
         self.avgPrice = newPrice
 
-    def getIntro(self):
+    def getIntro(self, json):
         side = OrderSide.Buy if self.quantity >= 0 else OrderSide.Sell
-        return f"{side.description} {self.quantity} {self.symbol.ticker} @ {self.avgPrice}, cmp = {self.symbol.ltp}, pnl = {self.getPositionPnL()}"
+
+        if not json:
+            return f"{side.description} {self.quantity} {self.symbol.ticker} @ {self.avgPrice}, cmp = {self.symbol.ltp}, pnl = {self.getPositionPnL()}"
+        else:
+            return {
+                'quantity': self.quantity,
+                'symbol': self.symbol.ticker,
+                'avgPrice': self.avgPrice,
+                'cmp': self.symbol.ltp,
+                'unrealized': self.getUnrealizedPnL(),
+                'realized': self.realized_pnl
+            }
 
     def __init__(self, symbol: Type[type(Symbol)], qty, avgPrice, realizedPnL=0):
         self.symbol = symbol

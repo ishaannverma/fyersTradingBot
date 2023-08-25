@@ -1,12 +1,11 @@
-from modules.singleSymbol import Symbol
-
+from modules.strategies.singleSymbol import Symbol
+from modules.login.login_route import fyers_model_class_obj as fyers
+from modules.logging.logging import loggerObject
 
 class Symbols:
     _symbolsList = {
 
     }
-    _logger = None
-    _fyers = None
     _common_symbols = {
         'nifty50': "NSE:NIFTY50-INDEX",
         'indiavix': "NSE:INDIAVIX-INDEX",
@@ -20,11 +19,10 @@ class Symbols:
             return self._symbolsList[self._common_symbols[symbol]]
 
         if symbol in self._common_symbols:
-            symbolObject = Symbol(self._common_symbols[symbol], initWebsocket=True, fyers=self._fyers,
-                                  logger=self._logger)
+            symbolObject = Symbol(self._common_symbols[symbol], initWebsocket=True)
             self._symbolsList[self._common_symbols[symbol]] = symbolObject
         else:
-            symbolObject = Symbol(symbol, initWebsocket=True, fyers=self._fyers, logger=self._logger)
+            symbolObject = Symbol(symbol, initWebsocket=True)
             self._symbolsList[symbol] = symbolObject
 
         return symbolObject
@@ -35,6 +33,5 @@ class Symbols:
 
         del self._symbolsList[symbol]
 
-    def __init__(self, fyers, logger):
-        self._fyers = fyers
-        self._logger = logger
+    def __init__(self):
+        pass

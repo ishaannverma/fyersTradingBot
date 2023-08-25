@@ -1,0 +1,24 @@
+{% extends "home.html" %}
+
+{% block component %}
+    <table>
+        <tr>
+            <th>Intro</th>
+            <th>Realized</th>
+            <th>Unrealized</th>
+        </tr>
+
+        {% for strat in strats %}
+
+            <tr>
+
+                <td><a href="{{ url_for('server.strategies.position', stratID=strat['id']) }}">{{ strat['intro'] }} </a></td>
+
+                <td>{{ strat['pnl'][0] }}</td>
+
+                <td>{{ strat['pnl'][1] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

@@ -1,6 +1,6 @@
-from modules.templates import OrderStatusValue, OrderStatus, OrderSideValue, OrderSide
+from modules.logic.templates import OrderStatusValue, OrderStatus, OrderSideValue
 from typing import Type
-from modules.singleSymbol import Symbol
+from modules.strategies.singleSymbol import Symbol
 
 
 class Order:
