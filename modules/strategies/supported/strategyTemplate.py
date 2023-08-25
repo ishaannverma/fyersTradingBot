@@ -26,7 +26,7 @@ class Strategy(ABC):
     positions: Dict[str, type(Position)] = {}  # ticker to positions object
     _orders: Dict[str, List[type(Order)]] = {}  # ticker to orders
 
-    _killSwitch = False  # TODO use this
+    _killSwitch = False
     _symbolsHandler = None
 
     ########################### USED BY STRATEGIES HANDLER ###########################
@@ -34,7 +34,6 @@ class Strategy(ABC):
     def getPnL(self):
         realized = 0
         unrealized = 0
-        pnl = 0  # TODO keep pnl of closed positions too
         for position in self.positions.values():
             realized += position.realized_pnl
             unrealized += position.getUnrealizedPnL()

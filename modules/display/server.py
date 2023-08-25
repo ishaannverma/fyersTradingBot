@@ -9,5 +9,3 @@ server_blueprint = Blueprint('server', __name__, url_prefix="/server")
 server_blueprint.register_blueprint(funds_blueprint)
 server_blueprint.register_blueprint(positions_blueprint)
 server_blueprint.register_blueprint(strategies_blueprint)
-
-# TODO add button or form to start any strategy

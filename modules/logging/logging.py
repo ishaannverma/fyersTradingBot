@@ -22,7 +22,6 @@ class Logger:
         if not os.path.exists(self.strat_bin_path):
             os.mkdir(self.strat_bin_path)
 
-    # TODO: add option to send telegram of this too
     def add_log(self, logType: Type[type(LogType)], message: str):
         msg = f"{logType.description}: {message}"
 

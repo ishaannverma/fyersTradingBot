@@ -43,13 +43,12 @@ class StrategyHandler:
                                                    paperTrade).fill_from_json(dataDict)
                     self.addStrategy(strategyObject)
 
-
     def addStrategy(self, strategy: Type[type(Strategy)]):
         updatesQueue = Queue()  # from ordering module to strategy
         commandsQueue = Queue()  # from strategyHandler to strategy
-        # TODO add commands queue to strategy too
 
         strategy.setQueues(orders=self._ordering_module_orders_queue, updates=updatesQueue, commands=commandsQueue)
+        # same orders queue, different queues for updates and commands
 
         strategyID = strategy.id
 

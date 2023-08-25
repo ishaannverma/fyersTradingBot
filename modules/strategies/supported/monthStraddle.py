@@ -14,14 +14,15 @@ from modules.logging.logging import loggerObject as logger
 class MonthStraddle(Strategy):
 
     def __init__(self, symbol: Type[type(Symbol)], vix: Type[type(Symbol)], symbolsHandler: Type[type(Symbols)],
-                 paperTrade=True):  # TODO change hardcoded True
+                 paperTrade=True):
+        self.strategyName: str = "MonthStraddle"
+        self.id: str = uuid4().hex
+        self.paperTrade = paperTrade
+
         self._symbolsHandler = symbolsHandler
         self.underlying = symbol
         self.vix = vix
-        self.paperTrade = paperTrade
 
-        self.strategyName: str = "MonthStraddle"
-        self.id: str = uuid4().hex  # _status: Type[type(StrategyStatusValue)] = StrategyStatus.untraded
 
         self.positions: Dict[str, type(Position)] = {}  # ticker to positions object
         self._orders: Dict[str, List[type(Order)]] = {}  # ticker to orders
