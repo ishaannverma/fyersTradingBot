@@ -1,0 +1,24 @@
+{% extends "home.html" %}
+
+{% block component %}
+    <table>
+        <tr>
+            <th>Ticker</th>
+            <th>LTP</th>
+            <th>Time</th>
+        </tr>
+
+        {% for symbol in symbols %}
+
+            <tr>
+
+                <td>{{ symbol[0] }}</td>
+
+                <td>{{ symbol[1] }}</td>
+
+                <td>{{ symbol[2] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

@@ -9,6 +9,8 @@ from wtforms import StringField, SelectField, IntegerField, BooleanField, Submit
 from wtforms.validators import DataRequired
 from modules.logging.logging import loggerObject as logger
 from modules.logic.templates import LogType
+from modules.logic.dateParsing import dateStringFromTimestamp
+import pandas as pd
 
 symbolsHandler = Symbols()
 strategiesHandler = StrategyHandler(symbolsHandler)
@@ -93,3 +95,12 @@ def position(stratID):
         'positions': positionsIntro
     }
     return render_template('strategy_info.html', stratjson=stratJSON)
+
+@strategies_blueprint.route('activeSymbols')
+def activeSymbols():
+    symbolsList = []
+    lstSymbolsResponse = symbolsHandler.getAll()
+    for objSymbol in lstSymbolsResponse.values():
+        symbolsList.append([objSymbol.ticker, objSymbol.ltp, dateStringFromTimestamp(objSymbol.time)])
+
+    return render_template('active_symbols.html', symbols = symbolsList)

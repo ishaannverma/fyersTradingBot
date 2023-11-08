@@ -12,14 +12,13 @@ from threading import Thread
 from modules.logic.singleOrder import Order
 from queue import Queue
 
-
 ########################### ORDERS WEBSOCKET ###########################
-def run_process_order_update(onMessage, access_token, log_path):
+def run_process_order_update(onMessage):
     def websocketInstance():
-        data_type = "orderUpdate"
-        fs = ws.FyersSocket(access_token=access_token, log_path=log_path)
+        ws_access_token = fyers.get_WS_Access_token()
+        fs = ws.FyersSocket(access_token=ws_access_token, log_path=logger.logging_path)
         fs.websocket_data = onMessage
-        fs.subscribe(data_type=data_type)
+        fs.subscribe(data_type="orderUpdate")
         fs.keep_running()
 
     while True:
@@ -43,7 +42,7 @@ def run_process_order_update(onMessage, access_token, log_path):
 
 def startOrdersWebsocket(onMessage):
     thread = Thread(target=run_process_order_update,
-                    args=(onMessage, app_credentials['WS_ACCESS_TOKEN'], logger.logging_path,))
+                    args=(onMessage,))
     logger.add_log(LogType.INFO, 'Starting orders websocket')
     thread.start()
 

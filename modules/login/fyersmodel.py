@@ -22,6 +22,57 @@ class Model:
 
     def __init__(self):
         self._model = None
+        self._WS_ACCESS_TOKEN = None
+
+    ########################### MODEL METHODS ###########################
+
+    def _model_exists(self):
+        if self._model is None:
+            return False
+
+        return True
+
+    def setModel(self, newmodel, websocket_access_token):
+        self._model = newmodel
+        self._WS_ACCESS_TOKEN = websocket_access_token
+
+    def get_WS_Access_token(self):
+        return self._WS_ACCESS_TOKEN
+
+    def checkValidityofModel(self, tokenTime, logger=logger):
+        timeDiff = datetime.now() - tokenTime
+        if timeDiff > timedelta(hours=14):
+            logger.add_log(LogType.INFO,
+                           f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
+            return False
+        else:
+            logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
+
+            status, response = self.get_profile()
+            if status is True:
+                if response['code'] == 200:
+                    return True
+                else:
+                    logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
+            else:
+                logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
+
+        return False
+
+    def checkConnection(self, logger=logger):
+        status, response = self.get_profile()
+
+        if status is False:
+            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response}")
+            return False
+
+        if response['code'] == 200:
+            logger.add_log(LogType.DEBUG, "Connection Verified!")
+            return True
+        else:
+            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response['s']}")
+
+        return False
 
     ########################### DEFINE WRAPPER FUNCTIONS ###########################
 
@@ -37,7 +88,7 @@ class Model:
                 return_value = rsp
             else:
                 status = False
-                return_value = rsp['msg']
+                return_value = rsp['message']
         except Exception as e:
             status = False
             return_value = e
@@ -120,48 +171,3 @@ class Model:
 
         return status, return_value
 
-    ########################### MODEL METHODS ###########################
-
-    def _model_exists(self):
-        if self._model is None:
-            return False
-
-        return True
-
-    def setModel(self, newmodel):
-        self._model = newmodel
-
-    def checkValidityofModel(self, tokenTime, logger=logger):
-        timeDiff = datetime.now() - tokenTime
-        if timeDiff > timedelta(hours=14):
-            logger.add_log(LogType.INFO,
-                           f"Autologin failed: timestamp too old: {int(timeDiff.total_seconds() / 3600)} hours")
-            return False
-        else:
-            logger.add_log(LogType.INFO, f"Saved token found: {int(timeDiff.total_seconds() / 3600)} hours old")
-
-            status, response = self.get_profile()
-            if status is True:
-                if response['code'] == 200:
-                    return True
-                else:
-                    logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
-            else:
-                logger.add_log(LogType.INFO, f"Autologin failed: {response['message']}")
-
-        return False
-
-    def checkConnection(self, logger=logger):
-        status, response = self.get_profile()
-
-        if status is False:
-            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response}")
-            return False
-
-        if response['code'] == 200:
-            logger.add_log(LogType.DEBUG, "Connection Verified!")
-            return True
-        else:
-            logger.add_log(LogType.DEBUG, f"Failure to verify connection: {response['s']}")
-
-        return False

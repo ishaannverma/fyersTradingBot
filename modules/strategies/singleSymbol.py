@@ -51,6 +51,7 @@ class Symbol:
     _websocketThread = None
 
     def _onMessage(self, msg):
+        logger.add_log(LogType.DEBUG, f"{self.ticker} {self.ltp}")
         self.ltp = float(msg[0]['ltp'])
         if self.time < float(msg[0]['timestamp']):
             self.time = float(msg[0]['timestamp'])
@@ -61,7 +62,7 @@ class Symbol:
         if self._websocketThread is not None:
             return self
         self._websocketThread = Thread(target=marketWebsocketMain,
-                                       args=(self.ticker, self._onMessage, app_credentials['WS_ACCESS_TOKEN'], logs,))
+                                       args=(self.ticker, self._onMessage, fyers.get_WS_Access_token(), logs,))
         logger.add_log(LogType.INFO, f'Starting websocket for {self.ticker}')
         self._websocketThread.start()
         return self

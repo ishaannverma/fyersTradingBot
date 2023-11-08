@@ -27,8 +27,9 @@ login_blueprint = Blueprint('login', __name__, static_folder='modules/login/stat
 
 
 @login_blueprint.route('starter')
-def loginStarter(logger=logger, autoLogin: bool = True):
+def loginStarter(logger=logger):
     # check if already exists
+    autoLogin: bool = False
     if os.path.exists(loginLogLocation) and autoLogin:
         with open(loginLogLocation, 'r') as f:
             try:
@@ -42,13 +43,14 @@ def loginStarter(logger=logger, autoLogin: bool = True):
                 newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'],
                                                  token=app_credentials['ACCESS_TOKEN'],
                                                  log_path=logger.logging_path)
-                fyers_model_class_obj.setModel(newmodel)
+                fyers_model_class_obj.setModel(newmodel=newmodel, websocket_access_token=f"{app_credentials['APP_ID']}:{token}")
                 if fyers_model_class_obj.checkValidityofModel(tokenTime, logger):
                     logger.add_log(LogType.INFO, "Auto Login through saved credentials successful!")
                     return redirect(url_for('index'))
             except Exception as e:
                 logger.add_log(LogType.ERROR, e)
 
+    # if doesn't exist already, log in now
     return redirect(url_for('.login'))
 
 
@@ -81,7 +83,7 @@ def redirecturi():
     newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
                                      log_path=logger.logging_path)
 
-    fyers_model_class_obj.setModel(newmodel)
+    fyers_model_class_obj.setModel(newmodel=newmodel, websocket_access_token=f"{app_credentials['APP_ID']}:{request.args.get('auth_code')}")
 
     if fyers_model_class_obj.checkConnection(logger):
         logger.add_log(LogType.INFO, "Login through redirection successful!")

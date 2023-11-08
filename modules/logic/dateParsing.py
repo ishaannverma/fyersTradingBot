@@ -1,6 +1,11 @@
 import datetime
 import calendar
 from modules.logic.templates import ContractMonths
+from datetime import datetime
+
+
+def dateStringFromTimestamp(timestamp: float):
+    return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 
 class customDate:
@@ -12,7 +17,7 @@ class customDate:
     _contract_months = ContractMonths()
 
     def __init__(self):
-        today = datetime.datetime.today()
+        today = datetime.today()
         self.date = today.day
         self.month = today.month  # 1-12
         self.year = today.year
