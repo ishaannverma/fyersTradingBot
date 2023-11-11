@@ -27,7 +27,7 @@ login_blueprint = Blueprint('login', __name__, static_folder='modules/login/stat
 
 
 @login_blueprint.route('starter')
-def loginStarter(logger=logger):
+def loginStarter(logger=logger):  # TODO remove logger as input to all functions
     # check if already exists
     autoLogin: bool = False
     if os.path.exists(loginLogLocation) and autoLogin:
@@ -43,7 +43,8 @@ def loginStarter(logger=logger):
                 newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'],
                                                  token=app_credentials['ACCESS_TOKEN'],
                                                  log_path=logger.logging_path)
-                fyers_model_class_obj.setModel(newmodel=newmodel, websocket_access_token=f"{app_credentials['APP_ID']}:{token}")
+                fyers_model_class_obj.setModel(newmodel=newmodel,
+                                               websocket_access_token=f"{app_credentials['APP_ID']}:{token}")
                 if fyers_model_class_obj.checkValidityofModel(tokenTime, logger):
                     logger.add_log(LogType.INFO, "Auto Login through saved credentials successful!")
                     return redirect(url_for('index'))
@@ -56,7 +57,6 @@ def loginStarter(logger=logger):
 
 @login_blueprint.route('generateurl')
 def login(logger=logger):
-
     # if not, make new model
     # Step 1
     logger.add_log(LogType.INFO, "Logging in manually")
@@ -83,7 +83,8 @@ def redirecturi():
     newmodel = fyersModel.FyersModel(client_id=app_credentials['APP_ID'], token=app_credentials['ACCESS_TOKEN'],
                                      log_path=logger.logging_path)
 
-    fyers_model_class_obj.setModel(newmodel=newmodel, websocket_access_token=f"{app_credentials['APP_ID']}:{request.args.get('auth_code')}")
+    fyers_model_class_obj.setModel(newmodel=newmodel,
+                                   websocket_access_token=f"{app_credentials['APP_ID']}:{request.args.get('auth_code')}")
 
     if fyers_model_class_obj.checkConnection(logger):
         logger.add_log(LogType.INFO, "Login through redirection successful!")

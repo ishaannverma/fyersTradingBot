@@ -6,16 +6,19 @@ from typing import Type, Dict
 from modules.login.login_route import fyers_model_class_obj as fyers
 from modules.logging.logging import loggerObject as logger
 from modules.logic.templates import OrderSide, LogType, OrderStatus, OrderStatusValue
-from fyers_api.Websocket import ws
+from fyers_api.Websocket import ws  # TODO update to fyersv3
 from modules.keys import app_credentials
 from threading import Thread
 from modules.logic.singleOrder import Order
 from queue import Queue
 
+
 ########################### ORDERS WEBSOCKET ###########################
 def run_process_order_update(onMessage):
     def websocketInstance():
         ws_access_token = fyers.get_WS_Access_token()
+        if ws_access_token is None:
+            raise Exception("WS Access Token evaluated as None")
         fs = ws.FyersSocket(access_token=ws_access_token, log_path=logger.logging_path)
         fs.websocket_data = onMessage
         fs.subscribe(data_type="orderUpdate")
@@ -25,7 +28,7 @@ def run_process_order_update(onMessage):
         try:
             websocketInstance()
         except Exception as e:
-            logger.add_log(LogType.DEBUG, f"Failed to establish/maintain orders websocket connection: {e}")
+            logger.add_log(LogType.DEBUG, f"Failed to establish/maintain ORDERS websocket connection: {e}")
             time.sleep(5)
 
             # retry in 10 seconds

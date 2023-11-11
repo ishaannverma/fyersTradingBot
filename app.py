@@ -11,7 +11,10 @@ app.register_blueprint(server_blueprint)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if fyers_model_class_obj.model_exists():
+        return render_template('index.html')
+    else:
+        return render_template('landing.html')
 
 
 if __name__ == '__main__':

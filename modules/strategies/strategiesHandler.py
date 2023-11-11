@@ -59,7 +59,7 @@ class StrategyHandler:
         self.strategies_dict[strategyID] = strategy
         self._commands_queues[strategyID] = commandsQueue
 
-        print("starting")
+        print(f"starting strategy {strategy.strategyName}")
         strategy.start()
         logger.add_log(LogType.UPDATE, f"Added {strategy.strategyName}: {strategyID}")
         return strategyID

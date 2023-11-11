@@ -26,10 +26,9 @@ class Model:
 
     ########################### MODEL METHODS ###########################
 
-    def _model_exists(self):
+    def model_exists(self):
         if self._model is None:
             return False
-
         return True
 
     def setModel(self, newmodel, websocket_access_token):
@@ -40,6 +39,9 @@ class Model:
         return self._WS_ACCESS_TOKEN
 
     def checkValidityofModel(self, tokenTime, logger=logger):
+        if not self.model_exists():
+            return False
+
         timeDiff = datetime.now() - tokenTime
         if timeDiff > timedelta(hours=14):
             logger.add_log(LogType.INFO,
@@ -60,6 +62,9 @@ class Model:
         return False
 
     def checkConnection(self, logger=logger):
+        if not self.model_exists():
+            return False
+
         status, response = self.get_profile()
 
         if status is False:
@@ -78,7 +83,7 @@ class Model:
 
     def get_profile(self):
         # if status is false, return_value will have error msg
-        if not self._model_exists():
+        if not self.model_exists():
             return False, "Model doesn't exist/ not set up yet"
 
         try:
@@ -97,7 +102,7 @@ class Model:
 
     def funds(self):
         # if status is false, return_value will have error msg
-        if not self._model_exists():
+        if not self.model_exists():
             return False, "Model doesn't exist/ not set up yet"
 
         try:
@@ -116,7 +121,7 @@ class Model:
 
     def positions(self):
         # if status is false, return_value will have error msg
-        if not self._model_exists():
+        if not self.model_exists():
             return False, "Model doesn't exist/ not set up yet"
 
         try:
@@ -135,7 +140,7 @@ class Model:
 
     def place_order(self, order_data):
         # if status is false, return_value will have error msg
-        if not self._model_exists():
+        if not self.model_exists():
             return False, "Model doesn't exist/ not set up yet"
 
         try:
@@ -154,7 +159,7 @@ class Model:
 
     def quotes(self, quotes_data):
         # if status is false, return_value will have error msg
-        if not self._model_exists():
+        if not self.model_exists():
             return False, "Model doesn't exist/ not set up yet"
 
         try:
